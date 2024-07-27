@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ride_sync/authentication/signin.dart';
+import 'package:ride_sync/authentication/verification_screen.dart';
 import 'package:ride_sync/screens/home.dart';
 
 class AuthPage extends StatelessWidget {
@@ -12,13 +13,16 @@ class AuthPage extends StatelessWidget {
       body: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          //logged in
+          //not logged in
           if (!snapshot.hasData) {
             return SignInPage();
           }
-          //Not Logged in
+          // Logged in
           else {
-            return const HomePage();
+            if (snapshot.data?.emailVerified == true) {
+              return const HomePage();
+            }
+            return const VerificationScreen();
           }
         },
       ),

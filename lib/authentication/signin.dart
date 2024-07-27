@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:ride_sync/authentication/auth_service.dart';
+import 'package:ride_sync/authentication/forgot_password.dart';
 import 'package:ride_sync/authentication/signup.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/widgets/custom_buttom.dart';
@@ -16,52 +18,10 @@ class SignInPage extends StatefulWidget {
 
 class _SignInPageState extends State<SignInPage> {
   final emailController = TextEditingController();
-
   final passwordController = TextEditingController();
 
-  void signInUser() async {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        });
-
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
-      );
-      Navigator.pop(context);
-    } on FirebaseAuthException catch (e) {
-      Navigator.pop(context);
-      if (e.code == 'user-not-found') {
-        wrongEmailOrPasswordMessage("Incorrect Email!");
-      } else if (e.code == 'wrong-password') {
-        wrongEmailOrPasswordMessage("Incorrect Password!");
-      } else {
-        print(wrongEmailOrPasswordMessage(e.code));
-      }
-    }
-  }
-
-  wrongEmailOrPasswordMessage(String error_msg) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            backgroundColor: subtitleGrey,
-            title: Text(
-              error_msg,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-        });
-  }
+  final _authService = AuthService();
+  // final _formkey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +57,7 @@ class _SignInPageState extends State<SignInPage> {
                 ),
                 //email
                 CustomTextField(
+                    context: context,
                     controller: emailController,
                     hintText: "Email",
                     obscureText: false),
@@ -105,6 +66,7 @@ class _SignInPageState extends State<SignInPage> {
                 ),
                 //paswd
                 CustomTextField(
+                  context: context,
                   controller: passwordController,
                   hintText: "Password",
                   obscureText: true,
@@ -112,17 +74,25 @@ class _SignInPageState extends State<SignInPage> {
                 const SizedBox(
                   height: 5,
                 ),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: titleGrey,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context)
+                              .push(MaterialPageRoute(builder: (context) {
+                            return ForgotPassword();
+                          }));
+                        },
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: titleGrey,
+                          ),
                         ),
                       ),
                     ],
@@ -133,7 +103,10 @@ class _SignInPageState extends State<SignInPage> {
                 ),
                 CustomButton(
                   txt: 'Sign In',
-                  onTap: signInUser,
+                  onTap: () async {
+                    _authService.signInUser(
+                        context, emailController.text, passwordController.text);
+                  },
                 ),
                 const SizedBox(
                   height: 50,
