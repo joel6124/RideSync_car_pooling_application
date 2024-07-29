@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ride_sync/auth.dart';
 import 'package:ride_sync/authentication/auth_service.dart';
+import 'package:ride_sync/authentication/signin.dart';
 import 'package:ride_sync/colours.dart';
 
 class VerificationScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class VerificationScreen extends StatefulWidget {
 class _VerificationScreenState extends State<VerificationScreen> {
   late Timer timer;
   final _authService = AuthService();
+  final String? currentUser = FirebaseAuth.instance.currentUser?.email;
 
   @override
   void initState() {
@@ -51,39 +53,75 @@ class _VerificationScreenState extends State<VerificationScreen> {
         backgroundColor: deepGreen,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 60),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'An Email has been sent for verification to your registered Email. If you haven\'t received an email, Please tap on Resend Email',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: titleGrey,
-              ),
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                // _authService.sendEmailVerificationLink();
-              },
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                elevation: 2,
-              ),
-              child: const Text(
-                'Resend Email',
-                style: TextStyle(
-                    fontSize: 15,
+            Column(
+              children: [
+                const Text(
+                  'An Email has been sent for verification to your registered Email. If you haven\'t received an email, Please tap on Resend Email',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: deepGreen),
-              ),
+                    color: titleGrey,
+                  ),
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    _authService.sendEmailVerificationLink();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    elevation: 2,
+                  ),
+                  child: const Text(
+                    'Resend Email',
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: deepGreen),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  currentUser ?? 'email_id',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: titleGrey,
+                  ),
+                ),
+                const SizedBox(
+                  width: 2,
+                ),
+                TextButton(
+                  child: const Text(
+                    'Incorrect Email? ',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: deepGreen,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context)
+                        .pushReplacement(MaterialPageRoute(builder: ((context) {
+                      return const SignInPage();
+                    })));
+                  },
+                ),
+              ],
             )
           ],
         ),
