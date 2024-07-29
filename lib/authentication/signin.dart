@@ -1,7 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:ride_sync/authentication/auth_service.dart';
 import 'package:ride_sync/authentication/forgot_password.dart';
 import 'package:ride_sync/authentication/signup.dart';
@@ -10,7 +7,7 @@ import 'package:ride_sync/widgets/custom_buttom.dart';
 import 'package:ride_sync/widgets/custom_textfield.dart';
 
 class SignInPage extends StatefulWidget {
-  SignInPage({super.key});
+  const SignInPage({super.key});
 
   @override
   State<SignInPage> createState() => _SignInPageState();
@@ -148,31 +145,41 @@ class _SignInPageState extends State<SignInPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                        padding: EdgeInsets.all(7),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: subtitleGrey),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              "assets/google.png",
-                              height: 45,
+                    GestureDetector(
+                      onTap: () {
+                        _authService.signInWithGoogle(context);
+                      },
+                      child: Container(
+                          width: 380,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: subtitleGrey),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 9),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  "assets/google.png",
+                                  height: 40,
+                                ),
+                                const SizedBox(
+                                  width: 5,
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Sign in with Google',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16),
+                                  ),
+                                )
+                              ],
                             ),
-                            const SizedBox(
-                              width: 5,
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text(
-                                'Google',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 15),
-                              ),
-                            )
-                          ],
-                        ))
+                          )),
+                    )
                   ],
                 ),
                 const SizedBox(
@@ -203,7 +210,7 @@ class _SignInPageState extends State<SignInPage> {
                         'Register Now',
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.bold,
                           color: deepGreen,
                         ),
                       ),

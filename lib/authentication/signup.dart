@@ -1,9 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ride_sync/authentication/auth_service.dart';
 import 'package:ride_sync/authentication/signin.dart';
-import 'package:ride_sync/authentication/verification_screen.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/widgets/custom_buttom.dart';
 import 'package:ride_sync/widgets/custom_textfield.dart';
@@ -24,6 +22,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final passwordController = TextEditingController();
   final passwordConfirmController = TextEditingController();
   final nameController = TextEditingController();
+  final phoneController = TextEditingController();
+  String genderSelected = "Male";
 
   final _formkey = GlobalKey<FormState>();
   final _authService = AuthService();
@@ -89,6 +89,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     hintText: "Confirm Password",
                     obscureText: true,
                   ),
+                  CustomTextField(
+                    context: context,
+                    controller: phoneController,
+                    hintText: "Phone Number",
+                    obscureText: false,
+                  ),
                   const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -107,6 +113,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           onChanged: (String? newValue) {
                             setState(() {
                               dropdownValue = newValue!;
+                              genderSelected = dropdownValue;
                             });
                           },
                           items: gender_cat
@@ -129,7 +136,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           nameController.text,
                           emailController.text,
                           passwordController.text,
-                          passwordConfirmController.text);
+                          passwordConfirmController.text,
+                          phoneController.text,
+                          genderSelected);
                     },
                   ),
                   const SizedBox(height: 50),
@@ -166,68 +175,77 @@ class _RegisterPageState extends State<RegisterPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                          padding: EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: subtitleGrey),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Row(
-                            children: [
-                              Image.asset(
-                                "assets/google.png",
-                                height: 45,
-                              ),
-                              const SizedBox(
-                                width: 5,
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Google',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15),
-                                ),
-                              )
-                            ],
-                          ))
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'New User?',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: titleGrey,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => SignInPage()),
-                          );
+                          _authService.signInWithGoogle(context);
                         },
-                        child: const Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: Text(
-                            'Login',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: deepGreen,
-                            ),
+                        child: Container(
+                          width: 380,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: subtitleGrey),
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 9),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    "assets/google.png",
+                                    height: 40,
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'Sign in with Google',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                    ),
+                                  )
+                                ],
+                              )),
                         ),
                       )
                     ],
+                  ),
+                  const SizedBox(height: 40),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Already have an account?',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: titleGrey,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => SignInPage()),
+                            );
+                          },
+                          child: const Text(
+                            'Login',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: deepGreen,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ],
               ),

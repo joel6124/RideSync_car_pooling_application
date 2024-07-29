@@ -36,6 +36,20 @@ class _VerificationScreenState extends State<VerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
+        title: const Text(
+          'Email Verification',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: deepGreen,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
         child: Column(
@@ -45,7 +59,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               'An Email has been sent for verification to your registered Email. If you haven\'t received an email, Please tap on Resend Email',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: titleGrey,
               ),
@@ -55,9 +69,21 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                _authService.sendEmailVerificationLink();
+                // _authService.sendEmailVerificationLink();
               },
-              child: const Text('Resend Email'),
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                elevation: 2,
+              ),
+              child: const Text(
+                'Resend Email',
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: deepGreen),
+              ),
             )
           ],
         ),

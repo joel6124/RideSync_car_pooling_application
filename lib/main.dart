@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ride_sync/auth.dart';
-import 'package:ride_sync/authentication/auth_service.dart';
-import 'package:ride_sync/authentication/signin.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
