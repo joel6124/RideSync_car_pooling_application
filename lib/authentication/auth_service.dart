@@ -189,6 +189,11 @@ class AuthService {
     }
   }
 
+// SIGN OUT USER
+  void SignOut() async {
+    await FirebaseAuth.instance.signOut();
+  }
+
   // GOOGLE AUTHENTICATION
   Future<void> signInWithGoogle(BuildContext context) async {
     try {

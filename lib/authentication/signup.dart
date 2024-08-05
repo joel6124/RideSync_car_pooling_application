@@ -40,6 +40,20 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 255, 255, 255),
+      appBar: AppBar(
+        title: const Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Text(
+            'Register',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+        backgroundColor: deepGreen,
+        iconTheme: IconThemeData(
+          color: Colors.white,
+          size: 25,
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -229,7 +243,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(width: 4),
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => SignInPage()),

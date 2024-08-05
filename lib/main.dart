@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:ride_sync/DataHandler/appData.dart';
 import 'package:ride_sync/auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:ride_sync/screens/home.dart';
+import 'package:ride_sync/screens/rides.dart';
+import 'package:ride_sync/screens/searchScreen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -16,11 +21,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'RideSync',
-      theme: ThemeData.light(),
-      debugShowCheckedModeBanner: false,
-      home: const AuthPage(),
+    return ChangeNotifierProvider(
+      create: (context) {
+        return AppData();
+      },
+      child: MaterialApp(
+        title: 'RideSync',
+        theme: ThemeData.light(),
+        debugShowCheckedModeBanner: false,
+
+        //chnage later IMP
+        // home: RidesScreen(),
+        home: HomePage(),
+        // home: const AuthPage(),
+      ),
     );
   }
 }
