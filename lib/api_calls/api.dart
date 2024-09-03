@@ -12,10 +12,10 @@ class Api {
         var decodeData = jsonDecode(jsonData);
         return decodeData;
       } else {
-        return 'Failed with status code: ${response.statusCode}';
+        return 'failed';
       }
     } catch (e) {
-      return 'Failed with error: $e';
+      return 'failed';
     }
   }
 }

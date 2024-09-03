@@ -8,14 +8,18 @@ import 'package:ride_sync/api_calls/apiMethods.dart';
 import 'package:ride_sync/colours.dart';
 import 'dart:developer' as developer;
 
-class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+import 'package:ride_sync/screens/find_pool.dart';
+import 'package:ride_sync/screens/offer_pool.dart';
+
+class EndSearchScreen extends StatefulWidget {
+  const EndSearchScreen({super.key, required this.methodOfPool});
+  final int methodOfPool;
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  State<EndSearchScreen> createState() => _EndSearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _EndSearchScreenState extends State<EndSearchScreen> {
   List<PlacePredictions> placesFound = [];
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _pickuplocationController =
@@ -28,11 +32,11 @@ class _SearchScreenState extends State<SearchScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_focusNode);
+      String tempPickUpLoc = Provider.of<AppData>(context, listen: false)
+          .pickUpLocation!
+          .placeFormattedAddress;
+      _pickuplocationController.text = tempPickUpLoc;
     });
-    String tempPickUpLoc = Provider.of<AppData>(context, listen: false)
-        .pickUpLocation!
-        .placeFormattedAddress;
-    _pickuplocationController.text = tempPickUpLoc;
   }
 
   @override
@@ -51,23 +55,22 @@ class _SearchScreenState extends State<SearchScreen> {
           color: Colors.white,
         ),
         title: const Text(
-          'Choose Your Start and End Points',
+          'Choose Your End Location',
           style: TextStyle(
               color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        centerTitle: true,
         backgroundColor: deepGreen,
       ),
       body: Column(
         children: [
           Container(
-            height: 170,
+            height: 110,
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black,
-                  blurRadius: 4.0,
+                  blurRadius: 2.0,
                   spreadRadius: 0.5,
                 )
               ],
@@ -75,30 +78,6 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Padding(
               padding: const EdgeInsets.all(15.0),
               child: Column(children: [
-                TextField(
-                  onChanged: (value) {
-                    isPickUp = true;
-                    updateListOfPlacesPredicted(value);
-                  },
-                  controller: _pickuplocationController,
-                  decoration: InputDecoration(
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: lightGreen,
-                          ),
-                          borderRadius: BorderRadius.circular(15)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: deepGreen,
-                          ),
-                          borderRadius: BorderRadius.circular(15)),
-                      prefixIcon: const Icon(
-                        Icons.location_on,
-                        color: Color.fromARGB(255, 28, 108, 30),
-                      ),
-                      hintText: 'Select Pick Up Location'),
-                ),
-                const SizedBox(height: 10),
                 TextField(
                   focusNode: _focusNode,
                   onChanged: (value) {
@@ -111,18 +90,19 @@ class _SearchScreenState extends State<SearchScreen> {
                           borderSide: BorderSide(
                             color: lightGreen,
                           ),
-                          borderRadius: BorderRadius.circular(15)),
+                          borderRadius: BorderRadius.circular(8)),
                       focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(
                             color: deepGreen,
                           ),
-                          borderRadius: BorderRadius.circular(15)),
+                          borderRadius: BorderRadius.circular(8)),
                       prefixIcon: const Icon(
-                        Icons.location_on,
+                        Icons.location_off,
                         color: Color.fromARGB(255, 181, 24, 12),
                       ),
-                      hintText: 'Select Drop Location'),
+                      labelText: 'Select Drop Location'),
                 ),
+                const SizedBox(height: 10),
               ]),
             ),
           ),
@@ -134,18 +114,23 @@ class _SearchScreenState extends State<SearchScreen> {
               itemCount: placesFound.length,
               itemBuilder: (BuildContext context, int index) {
                 return ListTile(
-                  onTap: () {
-                    if (isPickUp == true) {
-                      _pickuplocationController.text =
-                          "${placesFound[index].mainText}, ${placesFound[index].secondaryText}";
-                      ApiMethods()
-                          .getPlaceDetails(placesFound[index], true, context);
+                  onTap: () async {
+                    _droplocationController.text =
+                        "${placesFound[index].mainText}, ${placesFound[index].secondaryText}";
+                    await ApiMethods()
+                        .getPlaceDetails(placesFound[index], false, context);
+                    if (widget.methodOfPool == 0) {
+                      Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) {
+                        return FindPool();
+                      }));
                     } else {
-                      _droplocationController.text =
-                          "${placesFound[index].mainText}, ${placesFound[index].secondaryText}";
-                      ApiMethods()
-                          .getPlaceDetails(placesFound[index], false, context);
+                      Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) {
+                        return OfferPool();
+                      }));
                     }
+                    //Move to either offer pool or find pool
                   },
                   leading: Icon(Icons.add_location),
                   title: Text(
@@ -168,7 +153,7 @@ class _SearchScreenState extends State<SearchScreen> {
               },
               separatorBuilder: (BuildContext context, int index) {
                 return Divider(
-                  color: Colors.grey[400],
+                  color: Colors.grey[600],
                   thickness: 1.0,
                   indent: 8.0,
                   endIndent: 8.0,

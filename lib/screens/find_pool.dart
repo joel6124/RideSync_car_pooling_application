@@ -1,9 +1,154 @@
-import 'dart:async';
+// import 'dart:async';
 
+// import 'package:flutter/material.dart';
+// import 'package:flutter/widgets.dart';
+// import 'package:geolocator/geolocator.dart';
+// import 'package:google_maps_flutter/google_maps_flutter.dart';
+// import 'package:intl/intl.dart'; // Import intl package
+// import 'package:ride_sync/colours.dart';
+
+// class FindPool extends StatefulWidget {
+//   const FindPool({super.key});
+
+//   @override
+//   State<FindPool> createState() => _FindPoolState();
+// }
+
+// class _FindPoolState extends State<FindPool> {
+//   final Completer<GoogleMapController> controllerGoogleMap =
+//       Completer<GoogleMapController>();
+//   GoogleMapController? newGoogleMapController;
+
+//   Position? currentPosition;
+//   String? currentAddress;
+
+//   static const CameraPosition _kGooglePlex = CameraPosition(
+//     target: LatLng(37.42796133580664, -122.085749655962),
+//     zoom: 15.4746,
+//   );
+
+//   TextEditingController dateTimeController = TextEditingController();
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         iconTheme: const IconThemeData(
+//           color: Colors.white,
+//         ),
+//         title: const Text(
+//           'Find Pool',
+//           style: TextStyle(
+//               color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+//         ),
+//         backgroundColor: deepGreen,
+//       ),
+//       body: SingleChildScrollView(
+//         child: Column(
+//           children: [
+//             Container(
+//               height: 500,
+//               width: double.infinity,
+//               child: GoogleMap(
+//                 mapType: MapType.normal,
+//                 myLocationButtonEnabled: true,
+//                 initialCameraPosition: _kGooglePlex,
+//                 onMapCreated: (GoogleMapController controller) {
+//                   controllerGoogleMap.complete(controller);
+//                   newGoogleMapController = controller;
+//                 },
+//               ),
+//             ),
+//             Container(
+//               child: Padding(
+//                 padding:
+//                     const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+//                 child: Column(
+//                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     GestureDetector(
+//                       onTap: () async {
+//                         DateTime? selectedDate = await showDatePicker(
+//                           context: context,
+//                           initialDate: DateTime.now(),
+//                           firstDate: DateTime(2000),
+//                           lastDate: DateTime(2101),
+//                         );
+
+//                         if (selectedDate != null) {
+//                           TimeOfDay? selectedTime = await showTimePicker(
+//                             context: context,
+//                             initialTime: TimeOfDay.now(),
+//                           );
+
+//                           if (selectedTime != null) {
+//                             setState(() {
+//                               final DateTime fullDateTime = DateTime(
+//                                 selectedDate.year,
+//                                 selectedDate.month,
+//                                 selectedDate.day,
+//                                 selectedTime.hour,
+//                                 selectedTime.minute,
+//                               );
+
+//                               String formattedDateTime =
+//                                   DateFormat('EEE, MMM d, h:mm a')
+//                                       .format(fullDateTime);
+
+//                               dateTimeController.text = formattedDateTime;
+//                             });
+//                           }
+//                         }
+//                       },
+//                       child: AbsorbPointer(
+//                         child: TextField(
+//                           controller: dateTimeController,
+//                           decoration: InputDecoration(
+//                             suffixIcon: Icon(Icons.date_range),
+//                             labelText: 'Date and Time',
+//                             enabledBorder: OutlineInputBorder(
+//                                 borderSide: BorderSide(
+//                                   color: lightGreen,
+//                                 ),
+//                                 borderRadius: BorderRadius.circular(8)),
+//                             focusedBorder: OutlineInputBorder(
+//                                 borderSide: BorderSide(
+//                                   color: deepGreen,
+//                                 ),
+//                                 borderRadius: BorderRadius.circular(8)),
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                     SizedBox(
+//                       height: 20,
+//                     ),
+//                     const Text(
+//                       'Select Number of Seats',
+//                       style:
+//                           TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             )
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:ride_sync/colours.dart';
+import 'package:ride_sync/widgets/custom_buttom.dart';
 
 class FindPool extends StatefulWidget {
   const FindPool({super.key});
@@ -22,14 +167,17 @@ class _FindPoolState extends State<FindPool> {
 
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14.4746,
+    zoom: 15.4746,
   );
+
+  TextEditingController dateTimeController = TextEditingController();
+  int? selectedSeats;
+  String? genderPreference = "Both";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 60,
         iconTheme: const IconThemeData(
           color: Colors.white,
         ),
@@ -43,7 +191,7 @@ class _FindPoolState extends State<FindPool> {
       body: Column(
         children: [
           Container(
-            height: 500,
+            height: 475,
             width: double.infinity,
             child: GoogleMap(
               mapType: MapType.normal,
@@ -55,23 +203,236 @@ class _FindPoolState extends State<FindPool> {
               },
             ),
           ),
-          Container(
-            child: Column(
-              children: [
-                TextField(
-                  decoration: InputDecoration(
-                    suffixIcon: Icon(Icons.clear),
-                    labelText: 'Outlined',
-                    hintText: 'hint text',
-                    helperText: 'supporting text',
-                    border: OutlineInputBorder(),
-                  ),
-                )
-              ],
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(15)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black,
+                    blurRadius: 2.0,
+                    spreadRadius: 0.5,
+                  )
+                ],
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 17, vertical: 8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 10,
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        DateTime? selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+
+                        if (selectedDate != null) {
+                          TimeOfDay? selectedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                          );
+
+                          if (selectedTime != null) {
+                            setState(() {
+                              final DateTime fullDateTime = DateTime(
+                                selectedDate.year,
+                                selectedDate.month,
+                                selectedDate.day,
+                                selectedTime.hour,
+                                selectedTime.minute,
+                              );
+
+                              String formattedDateTime =
+                                  DateFormat('EEE, MMM d, h:mm a')
+                                      .format(fullDateTime);
+
+                              dateTimeController.text = formattedDateTime;
+                            });
+                          }
+                        }
+                      },
+                      child: AbsorbPointer(
+                        child: TextField(
+                          controller: dateTimeController,
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 15.0, horizontal: 12.0),
+                            suffixIcon: Icon(Icons.date_range),
+                            labelText: 'Date and Time',
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: lightGreen,
+                                ),
+                                borderRadius: BorderRadius.circular(8)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: deepGreen,
+                                ),
+                                borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 15),
+                    const Text(
+                      'Select Number of Seats',
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: List.generate(4, (index) {
+                        int seatNumber = index + 1;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedSeats = seatNumber;
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 4),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: selectedSeats == seatNumber
+                                    ? deepGreen
+                                    : lightGreen,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 13, horizontal: 22),
+                              child: Text(
+                                '$seatNumber',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                    SizedBox(height: 15),
+                    const Text(
+                      'Gender Preference',
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 10),
+                    Wrap(
+                      spacing: 20,
+                      children: [
+                        ChoiceChip(
+                          label: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 4),
+                            child: Text('Male'),
+                          ),
+                          checkmarkColor: Colors.white,
+                          labelStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: (genderPreference == "Male")
+                                  ? Colors.white
+                                  : null),
+                          selectedColor: deepGreen,
+                          selected: genderPreference == 'Male',
+                          onSelected: (selected) {
+                            setState(() {
+                              genderPreference = selected ? 'Male' : null;
+                            });
+                          },
+                        ),
+                        ChoiceChip(
+                          label: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 4),
+                            child: Text('Female'),
+                          ),
+                          checkmarkColor: Colors.white,
+                          labelStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: (genderPreference == "Female")
+                                  ? Colors.white
+                                  : null),
+                          selectedColor: deepGreen,
+                          selected: genderPreference == 'Female',
+                          onSelected: (selected) {
+                            setState(() {
+                              genderPreference = selected ? 'Female' : null;
+                            });
+                          },
+                        ),
+                        ChoiceChip(
+                          label: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 4),
+                            child: Text('Both'),
+                          ),
+                          checkmarkColor: Colors.white,
+                          selected: genderPreference == 'Both',
+                          selectedColor: deepGreen,
+                          labelStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: (genderPreference == "Both")
+                                  ? Colors.white
+                                  : null),
+                          // color: MaterialStatePropertyAll(Colors.amber),
+                          onSelected: (selected) {
+                            setState(() {
+                              genderPreference = selected ? 'Both' : null;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: deepGreen,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Find Pool",
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )),
+                    ),
+                    // SizedBox(height: 15),
+                    // const Text(
+                    //   'Recurring Ride',
+                    //   style:
+                    //       TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    // ),
+                  ],
+                ),
+              ),
             ),
-          )
-          //Map,
-          //textFields for input of details
+          ),
         ],
       ),
     );

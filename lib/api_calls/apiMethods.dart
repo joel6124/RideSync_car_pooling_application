@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:developer' as developer;
 import 'package:provider/provider.dart';
 import 'package:ride_sync/DataHandler/appData.dart';
@@ -83,7 +84,8 @@ class ApiMethods {
     return [];
   }
 
-  Future<String> getPlaceDetails(PlacePredictions placeName, context) async {
+  Future<String> getPlaceDetails(
+      PlacePredictions placeName, bool isPickUp, context) async {
     String placeDetailsURL =
         "https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeName.placeId}&key=$mapKey";
     var response = await Api.getRequest(placeDetailsURL);
@@ -97,9 +99,24 @@ class ApiMethods {
             latitude: response["result"]["geometry"]["location"]["lat"],
             longitude: response["result"]["geometry"]["location"]["lng"]);
 
-        Provider.of<AppData>(context, listen: false)
-            .updateDropOffLocationAddress(address);
+        if (isPickUp == true) {
+          Provider.of<AppData>(context, listen: false)
+              .updatePickUpLocationAddress(address);
+        } else {
+          Provider.of<AppData>(context, listen: false)
+              .updateDropOffLocationAddress(address);
+        }
       }
+    }
+    return "";
+  }
+
+  Future<String> getDirections(LatLng initialPos, LatLng finalPos) async {
+    String directionUrl =
+        "https://maps.googleapis.com/maps/api/directions/json?origin=${initialPos.latitude},${initialPos.longitude}&destination=${finalPos.latitude},${finalPos.longitude}&key=$mapKey";
+    var response = await Api.getRequest(directionUrl);
+    if (response != "failed") {
+      if (response["status"] == "OK") {}
     }
     return "";
   }

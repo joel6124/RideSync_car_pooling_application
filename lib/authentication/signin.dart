@@ -42,7 +42,7 @@ class _SignInPageState extends State<SignInPage> {
                   height: 30,
                 ),
                 const Text(
-                  'Welcome Back!',
+                  'Welcome Back! Ready for another ride?',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

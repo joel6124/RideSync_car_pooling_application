@@ -78,4 +78,8 @@ class AuthPage extends StatelessWidget {
 
     return querySnapshot.docs.isNotEmpty;
   }
+
+  // Future<bool> fetchUserDetails(User? user) async {
+  //   final QuerySnapshot = await FirebaseFirestore.instance.collection('Users')
+  // }
 }

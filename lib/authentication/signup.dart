@@ -62,14 +62,26 @@ class _RegisterPageState extends State<RegisterPage> {
               child: Column(
                 children: [
                   const SizedBox(height: 50),
-                  Image.asset(
-                    "assets/login.png",
-                    width: double.maxFinite,
-                    height: 200,
+                  Container(
+                    width: 250.0, // Set the width of the container
+                    height: 250.0, // Set the height of the container
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        "assets/home_page1.jpg",
+                        fit: BoxFit.cover,
+                        width:
+                            250.0, // Ensure the image has the same width as the container
+                        height:
+                            250.0, // Ensure the image has the same height as the container
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 30),
                   const Text(
-                    'Register Yourself!',
+                    'Sign Up to Save Money and the Planet!',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

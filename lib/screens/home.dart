@@ -9,7 +9,9 @@ import 'package:ride_sync/Model/address.dart';
 import 'package:ride_sync/api_calls/apiMethods.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/screens/drawer_navbar.dart';
+import 'package:ride_sync/screens/endSearchScreen.dart';
 import 'package:ride_sync/screens/searchScreen.dart';
+import 'package:ride_sync/screens/startSearchScreen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -197,7 +199,7 @@ class _HomePageState extends State<HomePage> {
                           onTap: () {
                             Navigator.of(context)
                                 .push(MaterialPageRoute(builder: ((context) {
-                              return SearchScreen();
+                              return StartSearchScreen();
                             })));
                           },
                           child: AbsorbPointer(
@@ -219,7 +221,9 @@ class _HomePageState extends State<HomePage> {
                           onTap: () {
                             Navigator.of(context)
                                 .push(MaterialPageRoute(builder: ((context) {
-                              return SearchScreen();
+                              return EndSearchScreen(
+                                methodOfPool: methodOfPool,
+                              );
                             })));
                           },
                           child: TextField(
@@ -273,8 +277,11 @@ class _HomePageState extends State<HomePage> {
                 width: 5,
               ),
               Text(
-                'Pool',
-                style: TextStyle(color: Colors.white),
+                'Find Pool',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16),
               )
             ],
           ),
@@ -291,7 +298,10 @@ class _HomePageState extends State<HomePage> {
               ),
               Text(
                 'Offer Pool',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16),
               )
             ],
           ),

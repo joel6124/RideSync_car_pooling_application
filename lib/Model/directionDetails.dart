@@ -1,0 +1,3 @@
+class DirectionDetails {
+  // String distanceValue;
+}
