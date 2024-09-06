@@ -138,13 +138,13 @@ class _SearchScreenState extends State<SearchScreen> {
                     if (isPickUp == true) {
                       _pickuplocationController.text =
                           "${placesFound[index].mainText}, ${placesFound[index].secondaryText}";
-                      ApiMethods()
-                          .getPlaceDetails(placesFound[index], true, context);
+                      ApiMethods.getPlaceDetails(
+                          placesFound[index], true, context);
                     } else {
                       _droplocationController.text =
                           "${placesFound[index].mainText}, ${placesFound[index].secondaryText}";
-                      ApiMethods()
-                          .getPlaceDetails(placesFound[index], false, context);
+                      ApiMethods.getPlaceDetails(
+                          placesFound[index], false, context);
                     }
                   },
                   leading: Icon(Icons.add_location),

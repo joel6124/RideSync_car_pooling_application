@@ -1,152 +1,15 @@
-// import 'dart:async';
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter/widgets.dart';
-// import 'package:geolocator/geolocator.dart';
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:intl/intl.dart'; // Import intl package
-// import 'package:ride_sync/colours.dart';
-
-// class FindPool extends StatefulWidget {
-//   const FindPool({super.key});
-
-//   @override
-//   State<FindPool> createState() => _FindPoolState();
-// }
-
-// class _FindPoolState extends State<FindPool> {
-//   final Completer<GoogleMapController> controllerGoogleMap =
-//       Completer<GoogleMapController>();
-//   GoogleMapController? newGoogleMapController;
-
-//   Position? currentPosition;
-//   String? currentAddress;
-
-//   static const CameraPosition _kGooglePlex = CameraPosition(
-//     target: LatLng(37.42796133580664, -122.085749655962),
-//     zoom: 15.4746,
-//   );
-
-//   TextEditingController dateTimeController = TextEditingController();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         iconTheme: const IconThemeData(
-//           color: Colors.white,
-//         ),
-//         title: const Text(
-//           'Find Pool',
-//           style: TextStyle(
-//               color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-//         ),
-//         backgroundColor: deepGreen,
-//       ),
-//       body: SingleChildScrollView(
-//         child: Column(
-//           children: [
-//             Container(
-//               height: 500,
-//               width: double.infinity,
-//               child: GoogleMap(
-//                 mapType: MapType.normal,
-//                 myLocationButtonEnabled: true,
-//                 initialCameraPosition: _kGooglePlex,
-//                 onMapCreated: (GoogleMapController controller) {
-//                   controllerGoogleMap.complete(controller);
-//                   newGoogleMapController = controller;
-//                 },
-//               ),
-//             ),
-//             Container(
-//               child: Padding(
-//                 padding:
-//                     const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-//                 child: Column(
-//                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     GestureDetector(
-//                       onTap: () async {
-//                         DateTime? selectedDate = await showDatePicker(
-//                           context: context,
-//                           initialDate: DateTime.now(),
-//                           firstDate: DateTime(2000),
-//                           lastDate: DateTime(2101),
-//                         );
-
-//                         if (selectedDate != null) {
-//                           TimeOfDay? selectedTime = await showTimePicker(
-//                             context: context,
-//                             initialTime: TimeOfDay.now(),
-//                           );
-
-//                           if (selectedTime != null) {
-//                             setState(() {
-//                               final DateTime fullDateTime = DateTime(
-//                                 selectedDate.year,
-//                                 selectedDate.month,
-//                                 selectedDate.day,
-//                                 selectedTime.hour,
-//                                 selectedTime.minute,
-//                               );
-
-//                               String formattedDateTime =
-//                                   DateFormat('EEE, MMM d, h:mm a')
-//                                       .format(fullDateTime);
-
-//                               dateTimeController.text = formattedDateTime;
-//                             });
-//                           }
-//                         }
-//                       },
-//                       child: AbsorbPointer(
-//                         child: TextField(
-//                           controller: dateTimeController,
-//                           decoration: InputDecoration(
-//                             suffixIcon: Icon(Icons.date_range),
-//                             labelText: 'Date and Time',
-//                             enabledBorder: OutlineInputBorder(
-//                                 borderSide: BorderSide(
-//                                   color: lightGreen,
-//                                 ),
-//                                 borderRadius: BorderRadius.circular(8)),
-//                             focusedBorder: OutlineInputBorder(
-//                                 borderSide: BorderSide(
-//                                   color: deepGreen,
-//                                 ),
-//                                 borderRadius: BorderRadius.circular(8)),
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                     SizedBox(
-//                       height: 20,
-//                     ),
-//                     const Text(
-//                       'Select Number of Seats',
-//                       style:
-//                           TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             )
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
+import 'dart:developer' as developer;
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:ride_sync/DataHandler/appData.dart';
+import 'package:ride_sync/api_calls/apiMethods.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/widgets/custom_buttom.dart';
 
@@ -162,8 +25,11 @@ class _FindPoolState extends State<FindPool> {
       Completer<GoogleMapController>();
   GoogleMapController? newGoogleMapController;
 
-  Position? currentPosition;
+  Position? pickUpPosition;
   String? currentAddress;
+
+  List<LatLng> pLineCoordinates = [];
+  Set<Polyline> polyLineSet = {};
 
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
@@ -173,6 +39,14 @@ class _FindPoolState extends State<FindPool> {
   TextEditingController dateTimeController = TextEditingController();
   int? selectedSeats;
   String? genderPreference = "Both";
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await getDirection(context);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -196,10 +70,21 @@ class _FindPoolState extends State<FindPool> {
             child: GoogleMap(
               mapType: MapType.normal,
               myLocationButtonEnabled: true,
+              zoomGesturesEnabled: true,
               initialCameraPosition: _kGooglePlex,
+              polylines: polyLineSet,
               onMapCreated: (GoogleMapController controller) {
                 controllerGoogleMap.complete(controller);
                 newGoogleMapController = controller;
+
+                var pickUpPos =
+                    Provider.of<AppData>(context, listen: false).pickUpLocation;
+                LatLng latLngPosition =
+                    LatLng(pickUpPos!.latitude, pickUpPos.longitude);
+                CameraPosition cameraPosition =
+                    CameraPosition(target: latLngPosition, zoom: 12);
+                newGoogleMapController?.animateCamera(
+                    CameraUpdate.newCameraPosition(cameraPosition));
               },
             ),
           ),
@@ -403,7 +288,19 @@ class _FindPoolState extends State<FindPool> {
                       height: 20,
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        // final appData =
+                        //     Provider.of<AppData>(context, listen: false);
+
+                        // if (appData.pickUpLocation != null) {
+                        //   print(appData.pickUpLocation!.placeName);
+                        //   print(appData.pickUpLocation!.placeFormattedAddress);
+                        //   print(appData.pickUpLocation!.latitude);
+                        //   print(appData.pickUpLocation!.longitude);
+                        // } else {
+                        //   print('Pick-up location is null');
+                        // }
+                      },
                       child: Container(
                           padding: EdgeInsets.symmetric(vertical: 20),
                           width: double.infinity,
@@ -436,5 +333,54 @@ class _FindPoolState extends State<FindPool> {
         ],
       ),
     );
+  }
+
+  Future<void> getDirection(BuildContext context) async {
+    var initialPos =
+        Provider.of<AppData>(context, listen: false).pickUpLocation;
+    var finalPos = Provider.of<AppData>(context, listen: false).dropOffLocation;
+    var pickUpLatLng = LatLng(initialPos!.latitude, initialPos.longitude);
+    var dropOffLatLng = LatLng(finalPos!.latitude, finalPos.longitude);
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: deepGreen,
+            ),
+          );
+        });
+    var directionDetails =
+        await ApiMethods.getDirections(pickUpLatLng, dropOffLatLng);
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(directionDetails!.encodedPoints),
+      ),
+    );
+
+    PolylinePoints polylinepoints = PolylinePoints();
+    List<PointLatLng> decodedPolyLinePointsResult =
+        polylinepoints.decodePolyline(directionDetails.encodedPoints);
+    pLineCoordinates.clear();
+    if (decodedPolyLinePointsResult.isNotEmpty) {
+      decodedPolyLinePointsResult.forEach((PointLatLng pointLatLng) {
+        pLineCoordinates
+            .add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
+      });
+    }
+    polyLineSet.clear();
+    setState(() {
+      Polyline polyline = Polyline(
+          polylineId: PolylineId("PolylineId"),
+          jointType: JointType.round,
+          color: Colors.black,
+          points: pLineCoordinates,
+          width: 5,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+          geodesic: true);
+      polyLineSet.add(polyline);
+    });
   }
 }

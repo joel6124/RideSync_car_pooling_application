@@ -9,6 +9,7 @@ import 'package:ride_sync/screens/offer_pool.dart';
 import 'package:ride_sync/screens/rides.dart';
 import 'package:ride_sync/screens/searchScreen.dart';
 import 'package:ride_sync/screens/splash_screen.dart';
+import 'package:ride_sync/screens/vehicleSelection.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
 
         //chnage later IMP
         // home: OfferPool(),
+        // home: AddVehiclePage(),
         // home: HomePage(),
         home: const SplashScreen(),
       ),

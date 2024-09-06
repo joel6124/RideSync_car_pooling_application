@@ -5,6 +5,7 @@ import 'dart:developer' as developer;
 import 'package:provider/provider.dart';
 import 'package:ride_sync/DataHandler/appData.dart';
 import 'package:ride_sync/Model/address.dart';
+import 'package:ride_sync/Model/directionDetails.dart';
 import 'package:ride_sync/Model/placePred.dart';
 import 'package:ride_sync/api_calls/api.dart';
 import 'package:ride_sync/configMaps.dart';
@@ -84,7 +85,7 @@ class ApiMethods {
     return [];
   }
 
-  Future<String> getPlaceDetails(
+  static Future<String> getPlaceDetails(
       PlacePredictions placeName, bool isPickUp, context) async {
     String placeDetailsURL =
         "https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeName.placeId}&key=$mapKey";
@@ -111,13 +112,35 @@ class ApiMethods {
     return "";
   }
 
-  Future<String> getDirections(LatLng initialPos, LatLng finalPos) async {
+  static Future<DirectionDetails?> getDirections(
+      LatLng initialPos, LatLng finalPos) async {
     String directionUrl =
         "https://maps.googleapis.com/maps/api/directions/json?origin=${initialPos.latitude},${initialPos.longitude}&destination=${finalPos.latitude},${finalPos.longitude}&key=$mapKey";
     var response = await Api.getRequest(directionUrl);
-    if (response != "failed") {
-      if (response["status"] == "OK") {}
+    if (response == "failed") {
+      return null;
     }
-    return "";
+
+    if (response["status"] == "OK") {
+      String encodedPoints =
+          response["routes"][0]["overview_polyline"]["points"];
+      String distanceText =
+          response["routes"][0]["legs"][0]["distance"]["text"];
+      int distanceValue = response["routes"][0]["legs"][0]["distance"]["value"];
+      String durationText =
+          response["routes"][0]["legs"][0]["duration"]["text"];
+      int durationValue = response["routes"][0]["legs"][0]["duration"]["value"];
+
+      DirectionDetails directionDetails = DirectionDetails(
+          distanceValue: distanceValue,
+          durationValue: durationValue,
+          distanceText: distanceText,
+          durationText: durationText,
+          encodedPoints: encodedPoints);
+
+      return directionDetails;
+    }
+
+    return null;
   }
 }

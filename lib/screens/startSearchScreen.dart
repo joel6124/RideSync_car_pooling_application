@@ -112,8 +112,8 @@ class _StartSearchScreenState extends State<StartSearchScreen> {
                   onTap: () async {
                     _pickuplocationController.text =
                         "${placesFound[index].mainText}, ${placesFound[index].secondaryText}";
-                    await ApiMethods()
-                        .getPlaceDetails(placesFound[index], true, context);
+                    await ApiMethods.getPlaceDetails(
+                        placesFound[index], true, context);
                     Navigator.of(context).pop();
                   },
                   leading: Icon(Icons.add_location),

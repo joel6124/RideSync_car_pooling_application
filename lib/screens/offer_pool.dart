@@ -2,12 +2,17 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:ride_sync/DataHandler/appData.dart';
+import 'package:ride_sync/api_calls/apiMethods.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/screens/vehicleSelection.dart';
 import 'package:ride_sync/widgets/custom_buttom.dart';
+import 'dart:developer' as developer;
 
 class OfferPool extends StatefulWidget {
   const OfferPool({super.key});
@@ -24,6 +29,9 @@ class _OfferPoolState extends State<OfferPool> {
   Position? currentPosition;
   String? currentAddress;
 
+  List<LatLng> pLineCoordinates = [];
+  Set<Polyline> polyLineSet = {};
+
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 15.4746,
@@ -32,6 +40,14 @@ class _OfferPoolState extends State<OfferPool> {
   TextEditingController dateTimeController = TextEditingController();
   int? selectedSeats;
   String? genderPreference = "Both";
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await getDirection(context);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +59,10 @@ class _OfferPoolState extends State<OfferPool> {
         title: const Text(
           'Offer Pool',
           style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         backgroundColor: deepGreen,
       ),
@@ -55,10 +74,20 @@ class _OfferPoolState extends State<OfferPool> {
             child: GoogleMap(
               mapType: MapType.normal,
               myLocationButtonEnabled: true,
+              polylines: polyLineSet,
               initialCameraPosition: _kGooglePlex,
               onMapCreated: (GoogleMapController controller) {
                 controllerGoogleMap.complete(controller);
                 newGoogleMapController = controller;
+
+                var pickUpPos =
+                    Provider.of<AppData>(context, listen: false).pickUpLocation;
+                LatLng latLngPosition =
+                    LatLng(pickUpPos!.latitude, pickUpPos.longitude);
+                CameraPosition cameraPosition =
+                    CameraPosition(target: latLngPosition, zoom: 12);
+                newGoogleMapController?.animateCamera(
+                    CameraUpdate.newCameraPosition(cameraPosition));
               },
             ),
           ),
@@ -299,7 +328,13 @@ class _OfferPoolState extends State<OfferPool> {
                       height: 20,
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        // developer.log(AppData().dropOffLocation!.placeId);
+                        // print(AppData().dropOffLocation!.placeName);
+                        // print(AppData().dropOffLocation!.placeFormattedAddress);
+                        // print(AppData().dropOffLocation!.latitude);
+                        // print(AppData().dropOffLocation!.longitude);
+                      },
                       child: Container(
                           padding: EdgeInsets.symmetric(vertical: 20),
                           width: double.infinity,
@@ -332,5 +367,54 @@ class _OfferPoolState extends State<OfferPool> {
         ],
       ),
     );
+  }
+
+  Future<void> getDirection(BuildContext context) async {
+    var initialPos =
+        Provider.of<AppData>(context, listen: false).pickUpLocation;
+    var finalPos = Provider.of<AppData>(context, listen: false).dropOffLocation;
+    var pickUpLatLng = LatLng(initialPos!.latitude, initialPos.longitude);
+    var dropOffLatLng = LatLng(finalPos!.latitude, finalPos.longitude);
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: deepGreen,
+            ),
+          );
+        });
+    var directionDetails =
+        await ApiMethods.getDirections(pickUpLatLng, dropOffLatLng);
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(directionDetails!.encodedPoints),
+      ),
+    );
+
+    PolylinePoints polylinepoints = PolylinePoints();
+    List<PointLatLng> decodedPolyLinePointsResult =
+        polylinepoints.decodePolyline(directionDetails.encodedPoints);
+    pLineCoordinates.clear();
+    if (decodedPolyLinePointsResult.isNotEmpty) {
+      decodedPolyLinePointsResult.forEach((PointLatLng pointLatLng) {
+        pLineCoordinates
+            .add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
+      });
+    }
+    polyLineSet.clear();
+    setState(() {
+      Polyline polyline = Polyline(
+          polylineId: PolylineId("PolylineId"),
+          jointType: JointType.round,
+          color: Colors.black,
+          points: pLineCoordinates,
+          width: 5,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+          geodesic: true);
+      polyLineSet.add(polyline);
+    });
   }
 }
