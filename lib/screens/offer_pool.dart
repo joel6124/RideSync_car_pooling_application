@@ -29,8 +29,17 @@ class _OfferPoolState extends State<OfferPool> {
   Position? currentPosition;
   String? currentAddress;
 
+  var initialPos;
+  var finalPos;
+  var pickUpLatLng;
+  var dropOffLatLng;
+  var distance = "";
+  var duration = "";
+
   List<LatLng> pLineCoordinates = [];
   Set<Polyline> polyLineSet = {};
+  Set<Marker> markerSet = {};
+  Set<Circle> circleSet = {};
 
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
@@ -71,24 +80,47 @@ class _OfferPoolState extends State<OfferPool> {
           Container(
             height: 370,
             width: double.infinity,
-            child: GoogleMap(
-              mapType: MapType.normal,
-              myLocationButtonEnabled: true,
-              polylines: polyLineSet,
-              initialCameraPosition: _kGooglePlex,
-              onMapCreated: (GoogleMapController controller) {
-                controllerGoogleMap.complete(controller);
-                newGoogleMapController = controller;
+            child: Stack(
+              alignment: AlignmentDirectional.center,
+              children: [
+                GoogleMap(
+                  mapType: MapType.normal,
+                  myLocationButtonEnabled: true,
+                  zoomGesturesEnabled: true,
+                  initialCameraPosition: _kGooglePlex,
+                  polylines: polyLineSet,
+                  circles: circleSet,
+                  markers: markerSet,
+                  onMapCreated: (GoogleMapController controller) {
+                    controllerGoogleMap.complete(controller);
+                    newGoogleMapController = controller;
 
-                var pickUpPos =
-                    Provider.of<AppData>(context, listen: false).pickUpLocation;
-                LatLng latLngPosition =
-                    LatLng(pickUpPos!.latitude, pickUpPos.longitude);
-                CameraPosition cameraPosition =
-                    CameraPosition(target: latLngPosition, zoom: 12);
-                newGoogleMapController?.animateCamera(
-                    CameraUpdate.newCameraPosition(cameraPosition));
-              },
+                    var pickUpPos = Provider.of<AppData>(context, listen: false)
+                        .pickUpLocation;
+                    LatLng latLngPosition =
+                        LatLng(pickUpPos!.latitude, pickUpPos.longitude);
+                    CameraPosition cameraPosition =
+                        CameraPosition(target: latLngPosition, zoom: 12);
+                    newGoogleMapController?.animateCamera(
+                        CameraUpdate.newCameraPosition(cameraPosition));
+                  },
+                ),
+                Positioned(
+                  top: 20,
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    child: Text(
+                      "$distance away | Approx. $duration",
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber,
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -370,11 +402,10 @@ class _OfferPoolState extends State<OfferPool> {
   }
 
   Future<void> getDirection(BuildContext context) async {
-    var initialPos =
-        Provider.of<AppData>(context, listen: false).pickUpLocation;
-    var finalPos = Provider.of<AppData>(context, listen: false).dropOffLocation;
-    var pickUpLatLng = LatLng(initialPos!.latitude, initialPos.longitude);
-    var dropOffLatLng = LatLng(finalPos!.latitude, finalPos.longitude);
+    initialPos = Provider.of<AppData>(context, listen: false).pickUpLocation;
+    finalPos = Provider.of<AppData>(context, listen: false).dropOffLocation;
+    pickUpLatLng = LatLng(initialPos!.latitude, initialPos.longitude);
+    dropOffLatLng = LatLng(finalPos!.latitude, finalPos.longitude);
     showDialog(
         context: context,
         builder: (context) {
@@ -392,7 +423,8 @@ class _OfferPoolState extends State<OfferPool> {
         content: Text(directionDetails!.encodedPoints),
       ),
     );
-
+    distance = directionDetails.distanceText;
+    duration = directionDetails.durationText;
     PolylinePoints polylinepoints = PolylinePoints();
     List<PointLatLng> decodedPolyLinePointsResult =
         polylinepoints.decodePolyline(directionDetails.encodedPoints);
@@ -410,11 +442,50 @@ class _OfferPoolState extends State<OfferPool> {
           jointType: JointType.round,
           color: Colors.black,
           points: pLineCoordinates,
-          width: 5,
+          width: 3,
           startCap: Cap.roundCap,
           endCap: Cap.roundCap,
           geodesic: true);
       polyLineSet.add(polyline);
+    });
+
+    //To fit polyine in screen
+    LatLngBounds latLngBounds;
+    if (pickUpLatLng.latitude > dropOffLatLng.latitude &&
+        pickUpLatLng.longitude > dropOffLatLng.longitude) {
+      latLngBounds =
+          LatLngBounds(southwest: dropOffLatLng, northeast: pickUpLatLng);
+    } else if (pickUpLatLng.longitude > dropOffLatLng.longitude) {
+      latLngBounds = LatLngBounds(
+          southwest: LatLng(pickUpLatLng.latitude, dropOffLatLng.longitude),
+          northeast: LatLng(dropOffLatLng.latitude, pickUpLatLng.longitude));
+    } else if (pickUpLatLng.latitude > dropOffLatLng.latitude) {
+      latLngBounds = LatLngBounds(
+          southwest: LatLng(dropOffLatLng.latitude, pickUpLatLng.longitude),
+          northeast: LatLng(pickUpLatLng.latitude, dropOffLatLng.longitude));
+    } else {
+      latLngBounds =
+          LatLngBounds(southwest: pickUpLatLng, northeast: dropOffLatLng);
+    }
+    newGoogleMapController!
+        .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, 70));
+
+    Marker pickUpLocationMarker = Marker(
+        markerId: MarkerId("pickUpId"),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        infoWindow:
+            InfoWindow(title: initialPos.placeName, snippet: "Pick Up Point"),
+        position: pickUpLatLng);
+    Marker dropOffLocationMarker = Marker(
+        markerId: MarkerId("dropOffId"),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow:
+            InfoWindow(title: finalPos.placeName, snippet: "Drop Off Point"),
+        position: dropOffLatLng);
+
+    setState(() {
+      markerSet.add(pickUpLocationMarker);
+      markerSet.add(dropOffLocationMarker);
     });
   }
 }
