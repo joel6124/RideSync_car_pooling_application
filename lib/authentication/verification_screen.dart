@@ -28,7 +28,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         timer.cancel();
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const AuthPage()),
+          MaterialPageRoute(builder: (context) => AuthPage()),
           (Route<dynamic> route) => false,
         );
       }

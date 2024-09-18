@@ -5,6 +5,7 @@ import 'package:ride_sync/auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:ride_sync/screens/find_pool.dart';
 import 'package:ride_sync/screens/home.dart';
+import 'package:ride_sync/screens/my_vehicle.dart';
 import 'package:ride_sync/screens/offer_pool.dart';
 import 'package:ride_sync/screens/rides.dart';
 import 'package:ride_sync/screens/searchScreen.dart';
@@ -34,10 +35,9 @@ class MyApp extends StatelessWidget {
         theme: ThemeData.light(),
         debugShowCheckedModeBanner: false,
 
-        //chnage later IMP
-        // home: OfferPool(),
         // home: AddVehiclePage(),
-        // home: HomePage(),
+        // home: MyVehicleScreen(),
+        // home: OfferPool(),
         home: const SplashScreen(),
       ),
     );
@@ -47,3 +47,6 @@ class MyApp extends StatelessWidget {
 //check for updation in git
 /// API NAMES, PROJECT NAMES, FIREBASE NAMES NOT SAME
 /// API MAPS KEY ="AIzaSyCQfR-6C1N8UtWNRq9bXyACb7s1nlplLQ4"
+/// 
+/// 
+/// API MAPS KEY 2(joeljino04@gmail.com)="AIzaSyBJMlgYLhifJxrStAEmw51DoQAGGUUs33w"

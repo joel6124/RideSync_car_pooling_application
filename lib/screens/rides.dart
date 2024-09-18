@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:ride_sync/colours.dart';
+import 'package:ride_sync/screens/home.dart';
+import 'package:ride_sync/widgets/custom_buttom.dart';
 
 class RidesScreen extends StatelessWidget {
   @override
@@ -22,6 +24,7 @@ class RidesScreen extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             SizedBox(
               height: 25,
@@ -31,6 +34,37 @@ class RidesScreen extends StatelessWidget {
             buildRideSection('Cancelled Rides', Colors.red, "Cancelled"),
             SizedBox(
               height: 25,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(context)
+                      .pushReplacement(MaterialPageRoute(builder: (context) {
+                    return HomePage();
+                  }));
+                },
+                icon: Icon(
+                  Icons.add,
+                  color: deepGreen,
+                  weight: 16,
+                ),
+                label: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  child: Text(
+                    'Create Ride',
+                    style: TextStyle(
+                        color: deepGreen,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8), // Custom shape here
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -55,7 +89,7 @@ class RidesScreen extends StatelessWidget {
         ListView.builder(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
-          itemCount: 2,
+          itemCount: 1,
           itemBuilder: (context, index) {
             return RideCard(color: color, status: status);
           },
@@ -85,7 +119,6 @@ class RideCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Ride details here
               Text(
                 'SAT 03, AUG',
                 style: TextStyle(
@@ -100,38 +133,48 @@ class RideCard extends StatelessWidget {
               SizedBox(
                 height: 10,
               ),
-
-              Container(
-                height: 30,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Anekal',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 28, 108, 30),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      Icon(Icons.circle, color: Colors.green, size: 12),
+                      SizedBox(height: 5),
+                      Column(
+                        children: List.generate(
+                            3,
+                            (index) => Icon(Icons.more_vert,
+                                color: Colors.grey, size: 12)),
                       ),
+                      SizedBox(height: 5),
+                      Icon(Icons.location_on, color: Colors.red, size: 20),
+                    ],
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'MPQ5+7FX, Hompalaghatta, Karnataka 562106, India',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          'Christ University, Hosur Main Road, Bhavani Nagar, Post, Bengaluru, Karnataka, India',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(
-                      width: 7,
-                    ),
-                    Icon(size: 28, Icons.arrow_right_alt),
-                    SizedBox(
-                      width: 7,
-                    ),
-                    Text(
-                      'Christ University',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 181, 24, 12),
-                      ),
-                    ),
-                  ],
-                ),
-              )
+                  ),
+                ],
+              ),
             ],
           ),
           Positioned(
@@ -140,10 +183,10 @@ class RideCard extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                     shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: BorderRadius.circular(10),
                     color: color),
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(6.0),
                   child: Text(
                     status,
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
@@ -152,8 +195,6 @@ class RideCard extends StatelessWidget {
               ))
         ],
       ),
-
-      // ... other ride details
     );
   }
 }

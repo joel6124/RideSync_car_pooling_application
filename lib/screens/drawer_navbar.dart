@@ -1,10 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ride_sync/authentication/auth_service.dart';
 import 'package:ride_sync/colours.dart';
+import 'package:ride_sync/screens/profile.dart';
 import 'package:ride_sync/screens/rides.dart';
 
 class Drawer_Navbar extends StatelessWidget {
-  const Drawer_Navbar({super.key});
+  Drawer_Navbar({super.key});
+
+  final User? user = FirebaseAuth.instance.currentUser;
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +26,9 @@ class Drawer_Navbar extends StatelessWidget {
                     height: 90,
                     child: CircleAvatar(
                       child: ClipOval(
-                        child: Image.asset(
-                          'assets/logo.jpg',
+                        child: Image.network(
+                          user?.photoURL ??
+                              'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg',
                           width: 90,
                           height: 90,
                           fit: BoxFit.cover,
@@ -31,16 +36,16 @@ class Drawer_Navbar extends StatelessWidget {
                       ),
                     ),
                   ),
-                  accountName: const Text(
-                    'Joel Jino',
-                    style: TextStyle(
-                      fontSize: 18,
+                  accountName: Text(
+                    user?.displayName ?? 'Guest',
+                    style: const TextStyle(
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  accountEmail: const Text(
-                    'joel@gmail.com',
-                    style: TextStyle(
+                  accountEmail: Text(
+                    user?.email ?? 'No Email',
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
                     ),
@@ -59,7 +64,10 @@ class Drawer_Navbar extends StatelessWidget {
                 bottom: 40,
                 child: GestureDetector(
                   onTap: () {
-                    print('object');
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) {
+                      return ProfilePage();
+                    }));
                   },
                   child: Icon(
                     Icons.arrow_forward_ios_outlined,
