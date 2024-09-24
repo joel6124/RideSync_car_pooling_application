@@ -111,6 +111,7 @@ class RideCard extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
+        color: deepGreen.withOpacity(0.1),
         border: Border.all(color: Colors.grey),
         borderRadius: BorderRadius.circular(8.0),
       ),

@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ride_sync/authentication/auth_service.dart';
 import 'package:ride_sync/colours.dart';
+import 'package:ride_sync/screens/ecodashboard.dart';
+import 'package:ride_sync/screens/my_vehicle.dart';
 import 'package:ride_sync/screens/profile.dart';
 import 'package:ride_sync/screens/rides.dart';
 
@@ -37,7 +39,7 @@ class Drawer_Navbar extends StatelessWidget {
                     ),
                   ),
                   accountName: Text(
-                    user?.displayName ?? 'Guest',
+                    user?.displayName ?? 'User',
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
@@ -99,7 +101,11 @@ class Drawer_Navbar extends StatelessWidget {
               color: lightGreen,
             ),
             title: const Text('Eco Dashboard'),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                return EcoDashboardScreen();
+              }));
+            },
           ),
           ListTile(
             leading: Icon(
@@ -107,7 +113,11 @@ class Drawer_Navbar extends StatelessWidget {
               color: Colors.purple,
             ),
             title: const Text('My Vehicle'),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                return MyVehicleScreen();
+              }));
+            },
           ),
           ListTile(
             leading: Icon(

@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:ride_sync/auth.dart';
 import 'package:ride_sync/authentication/auth_database.dart';
 import 'package:ride_sync/authentication/signin.dart';
 import 'package:ride_sync/colours.dart';
+import 'dart:developer';
 
 class AuthService {
   final _authDatabase = AuthDatabase();
@@ -102,6 +104,12 @@ class AuthService {
         "gender": gender,
         "imgURL": "",
         "id": user?.uid,
+        "verifiedGender": true,
+        "rating": 0,
+        "fuelSaved": 0,
+        "totalPools": 0,
+        "totalCo2Saved": 0,
+        "totalDistanceCovered": 0
       };
 
       if (!context.mounted) return;
@@ -201,20 +209,29 @@ class AuthService {
       await googleSignIn.signOut();
       final GoogleSignInAccount? googleSignInAccount =
           await googleSignIn.signIn();
+      log("Check 1");
       if (googleSignInAccount == null) {
         print("Error: Google Sign-In canceled by user.");
+        errorMsg(context, "Google Sign-In canceled by user.");
         return;
       }
+      log("Check 2");
+
       final GoogleSignInAuthentication googleSignInAuthentication =
           await googleSignInAccount.authentication;
+      log("ID Token: ${googleSignInAuthentication.idToken}");
+      log("Access Token: ${googleSignInAuthentication.accessToken}");
+
+      log("Check 3");
       final AuthCredential credential = GoogleAuthProvider.credential(
         idToken: googleSignInAuthentication.idToken,
         accessToken: googleSignInAuthentication.accessToken,
       );
-
+      log("Check 4");
       UserCredential result =
           await FirebaseAuth.instance.signInWithCredential(credential);
       User? userDetails = result.user;
+
       if (userDetails == null) {
         if (!context.mounted) return;
         errorMsg(context, "Error: User sign-in failed!");
@@ -227,8 +244,21 @@ class AuthService {
       }));
     } catch (e) {
       if (!context.mounted) return;
-      errorMsg(context, "Error: $e");
-      print("Error: $e");
+
+      // if (e is PlatformException) {
+      //   // Handle PlatformException specifically
+      //   final String? errorCode = e.code;
+      //   final String? errorMessage = e.message;
+      //   final dynamic errorDetails = e.details;
+
+      //   errorMsg(context,
+      //       "PlatformException: Code: $errorCode, Message: $errorMessage");
+      //   print(
+      //       "PlatformException: Code: $errorCode, Message: $errorMessage, Details: $errorDetails");
+      // } else {
+      // Handle other types of exceptions
+      errorMsg(context, "Error: ${e.toString()}");
+      print("Error: GSignIn: ${e.toString()}");
     }
   }
 
@@ -264,6 +294,12 @@ class AuthService {
         "gender": gender,
         "imgURL": photoUrl,
         "id": uid,
+        "verifiedGender": true,
+        "rating": 0,
+        "fuelSaved": 0,
+        "totalPools": 0,
+        "totalCo2Saved": 0,
+        "totalDistanceCovered": 0
       };
 
       if (!context.mounted) return;

@@ -63,8 +63,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   const SizedBox(height: 50),
                   Container(
-                    width: 250.0, // Set the width of the container
-                    height: 250.0, // Set the height of the container
+                    width: 250.0,
+                    height: 250.0,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                     ),

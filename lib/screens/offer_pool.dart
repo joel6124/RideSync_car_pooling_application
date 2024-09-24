@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -7,10 +9,14 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:random_string/random_string.dart';
 import 'package:ride_sync/DataHandler/appData.dart';
+import 'package:ride_sync/Services/database_service.dart';
 import 'package:ride_sync/api_calls/apiMethods.dart';
 import 'package:ride_sync/colours.dart';
-import 'package:ride_sync/screens/vehicleSelection.dart';
+import 'package:ride_sync/screens/addDrivingLicense.dart';
+import 'package:ride_sync/screens/addVehicle.dart';
+import 'package:ride_sync/screens/result_offerPool.dart';
 import 'package:ride_sync/widgets/custom_buttom.dart';
 import 'dart:developer' as developer;
 
@@ -22,14 +28,83 @@ class OfferPool extends StatefulWidget {
 }
 
 class _OfferPoolState extends State<OfferPool> {
-  String? _selectedVehicle; // To store the selected vehicle
-  final List<String> _vehicles = [
-    'Car',
-    'Bike',
-    'Scooter',
-    'Bus',
-    'Truck'
-  ]; // List of vehicles
+  final _OfferPoolDatabaseService = OfferPoolDatabaseService();
+  final User? user = FirebaseAuth.instance.currentUser;
+  String? _selectedVehicle;
+  TextEditingController dateTimeController = TextEditingController();
+  int? selectedSeats;
+  String? genderPreference = "Both";
+  Timestamp? fireStoreTimestamp;
+  List<List<String>> _vehicles = [];
+
+  Future<void> fetchVehicles() async {
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('Cars')
+            .where('userId', isEqualTo: user.uid)
+            .get();
+
+        _vehicles.clear();
+
+        for (var doc in querySnapshot.docs) {
+          // String carMakeModel = "${doc['carMake']} ${doc['carModel']}";
+          // _vehicles.add(carMakeModel);
+          List<String> carMakeModel = [
+            "${doc['carId']}",
+            "${doc['carMake']} ${doc['carModel']}"
+          ];
+          _vehicles.add(carMakeModel);
+        }
+
+        setState(() {});
+      } catch (e) {
+        print('Error fetching vehicles: $e');
+      }
+    }
+  }
+
+  Future<void> checkDrivingLicenseIfGiven(BuildContext context) async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final userRef =
+            FirebaseFirestore.instance.collection('Users').doc(user.uid);
+        final DocumentSnapshot docSnapshot = await userRef.get();
+
+        if (docSnapshot.exists) {
+          // Cast docSnapshot data to Map<String, dynamic>
+          final data = docSnapshot.data() as Map<String, dynamic>;
+
+          if (data.containsKey('driverLicenseNo')) {
+            final driverLicenseNo = data['driverLicenseNo'];
+            if (driverLicenseNo != null && driverLicenseNo.isNotEmpty) {
+              print('Driver License No: $driverLicenseNo');
+              return;
+            }
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Driving License number not provided!'),
+            ),
+          );
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+            return AddDrivingLicense(); // Make sure this screen is implemented
+          }));
+        } else {
+          print("No document found with ID: ${user.uid}");
+        }
+      } catch (e) {
+        print("Error fetching document: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e")),
+        );
+      }
+    }
+  }
 
   final Completer<GoogleMapController> controllerGoogleMap =
       Completer<GoogleMapController>();
@@ -55,16 +130,13 @@ class _OfferPoolState extends State<OfferPool> {
     zoom: 15.4746,
   );
 
-  TextEditingController dateTimeController = TextEditingController();
-  int? selectedSeats;
-  String? genderPreference = "Both";
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await getDirection(context);
     });
+    fetchVehicles();
   }
 
   @override
@@ -187,6 +259,9 @@ class _OfferPoolState extends State<OfferPool> {
                                     .format(fullDateTime);
 
                             dateTimeController.text = formattedDateTime;
+
+                            fireStoreTimestamp =
+                                Timestamp.fromDate(fullDateTime);
                           });
                         }
                       }
@@ -334,87 +409,125 @@ class _OfferPoolState extends State<OfferPool> {
                   SizedBox(
                     height: 10,
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context)
-                          .push(MaterialPageRoute(builder: (context) {
-                        return AddVehiclePage();
-                      }));
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      height: 60,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.directions_car,
-                            color: Colors.orange,
-                            size: 30,
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: DropdownButton<String>(
-                              value: _selectedVehicle,
-                              hint: Text(
-                                'Select Vehicle',
-                                style:
-                                    TextStyle(color: Colors.grey, fontSize: 16),
-                              ),
-                              isExpanded: true,
-                              underline: SizedBox(),
-                              icon: Icon(Icons.arrow_drop_down),
-                              items: _vehicles.map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _selectedVehicle = newValue;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    height: 60,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    // SizedBox(height: 20),
-                    // if(_selectedVehicle != null)
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.directions_car,
+                          color: Colors.orange,
+                          size: 30,
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: _vehicles.isNotEmpty
+                              ? DropdownButton<String>(
+                                  value: _selectedVehicle,
+                                  hint: Text(
+                                    'Select Your Vehicle',
+                                    style: TextStyle(
+                                        color: Colors.grey, fontSize: 16),
+                                  ),
+                                  isExpanded: true,
+                                  underline: SizedBox(),
+                                  icon: Icon(Icons.arrow_drop_down),
+                                  items: _vehicles.map((List<String> value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value[0],
+                                      child: Text(value[1]),
+                                    );
+                                  }).toList(),
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      _selectedVehicle = newValue;
+                                    });
+                                  },
+                                )
+                              : GestureDetector(
+                                  onTap: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              AddVehiclePage()),
+                                    );
 
-                    //   Text(
-                    //     'Selected Vehicle: $_selectedVehicle',
-                    //     style: TextStyle(fontSize: 16),
-                    //   ),
-                    // child: Container(
-                    //     width: 140,
-                    //     decoration: BoxDecoration(
-                    //         color: Colors.amber,
-                    //         borderRadius: BorderRadius.circular(8)),
-                    //     child: Padding(
-                    //       padding: const EdgeInsets.symmetric(vertical: 10),
-                    //       child: Row(
-                    //         mainAxisAlignment: MainAxisAlignment.center,
-                    //         children: [
-                    //           const Text(
-                    //             'Add Vehicle ',
-                    //             style: TextStyle(
-                    //                 fontSize: 17, fontWeight: FontWeight.bold),
-                    //           ),
-                    //           Icon(Icons.local_taxi),
-                    //         ],
-                    //       ),
-                    //     )),
+                                    await fetchVehicles();
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'No vehicle added, tap to add one!',
+                                        style: TextStyle(
+                                            color: Colors.green,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                      // SizedBox(width: 10),
+                                      Icon(
+                                        Icons.add_circle_outline,
+                                        color: deepGreen,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
+
                   SizedBox(
                     height: 20,
                   ),
                   GestureDetector(
-                    onTap: () {
+                    onTap: () async {
+                      if (selectedSeats == null ||
+                          genderPreference == null ||
+                          fireStoreTimestamp == null ||
+                          _selectedVehicle == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please fill in a details!'),
+                          ),
+                        );
+                        return;
+                      }
+                      checkDrivingLicenseIfGiven(context);
+                      String offerId = randomAlphaNumeric(28);
+                      Map<String, dynamic> PoolOfferInfoMap = {
+                        'offerId': offerId,
+                        'userId': user!.uid,
+                        'carId': _selectedVehicle,
+                        'startLocation': {
+                          'latitude': initialPos!.latitude,
+                          'longitude': initialPos.longitude,
+                        },
+                        'endLocation': {
+                          'latitude': finalPos!.latitude,
+                          'longitude': finalPos.longitude,
+                        },
+                        'time': fireStoreTimestamp,
+                        'availableSeats': selectedSeats,
+                        'preferredGender': genderPreference,
+                        'status': "Pending",
+                      };
+
+                      await _OfferPoolDatabaseService.addPoolOffer(
+                          context, offerId, PoolOfferInfoMap);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ResultOfferPool()),
+                      );
+
                       // developer.log(AppData().dropOffLocation!.placeId);
                       // print(AppData().dropOffLocation!.placeName);
                       // print(AppData().dropOffLocation!.placeFormattedAddress);

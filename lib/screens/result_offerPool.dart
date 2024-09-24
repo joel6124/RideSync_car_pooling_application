@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:ride_sync/colours.dart';
 
-class ResultFindPool extends StatefulWidget {
-  const ResultFindPool({super.key});
+class ResultOfferPool extends StatefulWidget {
+  const ResultOfferPool({super.key});
 
   @override
-  State<ResultFindPool> createState() => _ResultFindPoolState();
+  State<ResultOfferPool> createState() => _ResultOfferpoolState();
 }
 
-class _ResultFindPoolState extends State<ResultFindPool> {
+class _ResultOfferpoolState extends State<ResultOfferPool> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,7 +17,7 @@ class _ResultFindPoolState extends State<ResultFindPool> {
             color: Colors.white,
           ),
           title: const Text(
-            'Matching Ride Givers',
+            'Matching Riders',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -234,7 +234,7 @@ class CarpoolOfferCard extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () {},
                     child: Text(
-                      'Request Seat',
+                      'Offer a seat',
                       style: TextStyle(color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
