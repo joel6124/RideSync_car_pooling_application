@@ -86,7 +86,37 @@ class OfferPoolDatabaseService {
         Navigator.pop(context);
       } catch (e) {
         Navigator.pop(context);
-        developer.log("Error adding vehicle data: $e");
+        developer.log("Error adding Pool Offer: $e");
+      }
+    }
+  }
+}
+
+class FindPoolDatabaseService {
+  final String PoolRequests_collection_ref = "PoolRequests";
+  Future<void> addPoolFind(
+      context, String requestId, Map<String, dynamic> PoolFindInfoMap) async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: deepGreen,
+            ),
+          );
+        });
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection(PoolRequests_collection_ref)
+            .doc(requestId)
+            .set(PoolFindInfoMap);
+        developer.log("Pool Request added successfully!");
+        Navigator.pop(context);
+      } catch (e) {
+        Navigator.pop(context);
+        developer.log("Error adding Pool Request : $e");
       }
     }
   }

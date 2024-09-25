@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ride_sync/colours.dart';
+import 'package:ride_sync/screens/addDrivingLicense.dart';
 import 'package:ride_sync/screens/addVehicle.dart';
 
 class MyVehicleScreen extends StatefulWidget {
@@ -162,7 +163,10 @@ class _MyVehicleScreenState extends State<MyVehicleScreen> {
                     color: Colors.white,
                   ),
                   onTap: () {
-                    // Add driving license logic
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) {
+                      return AddDrivingLicense();
+                    }));
                   },
                 ),
               ),

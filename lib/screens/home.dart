@@ -10,6 +10,7 @@ import 'package:ride_sync/api_calls/apiMethods.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/screens/drawer_navbar.dart';
 import 'package:ride_sync/screens/endSearchScreen.dart';
+import 'package:ride_sync/screens/notifications.dart';
 import 'package:ride_sync/screens/searchScreen.dart';
 import 'package:ride_sync/screens/startSearchScreen.dart';
 
@@ -109,7 +110,42 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         backgroundColor: deepGreen,
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.notifications))
+          Stack(
+            children: [
+              IconButton(
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) {
+                      return NotificationsScreen();
+                    }));
+                  },
+                  icon: Icon(Icons.notifications)),
+              Positioned(
+                right: 10,
+                top: 4,
+                child: Container(
+                  padding: const EdgeInsets.all(1),
+                  decoration: const BoxDecoration(
+                    color: Colors.amber,
+                    borderRadius: BorderRadius.all(Radius.circular(6)),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 14,
+                    minHeight: 14,
+                  ),
+                  child: const Text(
+                    '5',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 10,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       drawer: Drawer_Navbar(),

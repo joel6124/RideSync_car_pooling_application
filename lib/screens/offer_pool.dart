@@ -92,7 +92,7 @@ class _OfferPoolState extends State<OfferPool> {
             ),
           );
           Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-            return AddDrivingLicense(); // Make sure this screen is implemented
+            return AddDrivingLicense();
           }));
         } else {
           print("No document found with ID: ${user.uid}");

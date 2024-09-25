@@ -4,6 +4,7 @@ import 'package:ride_sync/authentication/auth_service.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/screens/ecodashboard.dart';
 import 'package:ride_sync/screens/my_vehicle.dart';
+import 'package:ride_sync/screens/notifications.dart';
 import 'package:ride_sync/screens/profile.dart';
 import 'package:ride_sync/screens/rides.dart';
 
@@ -125,7 +126,11 @@ class Drawer_Navbar extends StatelessWidget {
               color: Colors.amber,
             ),
             title: const Text('Notifications'),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                return NotificationsScreen();
+              }));
+            },
           ),
           ListTile(
             leading: Icon(

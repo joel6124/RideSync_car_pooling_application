@@ -1,5 +1,7 @@
 import 'dart:developer' as developer;
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -8,7 +10,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:random_string/random_string.dart';
 import 'package:ride_sync/DataHandler/appData.dart';
+import 'package:ride_sync/Services/database_service.dart';
 import 'package:ride_sync/api_calls/apiMethods.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/screens/result_findPool.dart';
@@ -22,6 +26,13 @@ class FindPool extends StatefulWidget {
 }
 
 class _FindPoolState extends State<FindPool> {
+  final _findPoolDatabaseService = FindPoolDatabaseService();
+  final User? user = FirebaseAuth.instance.currentUser;
+  Timestamp? fireStoreTimestamp;
+  TextEditingController dateTimeController = TextEditingController();
+  int? selectedSeats;
+  String? genderPreference = "Both";
+
   final Completer<GoogleMapController> controllerGoogleMap =
       Completer<GoogleMapController>();
   GoogleMapController? newGoogleMapController;
@@ -45,10 +56,6 @@ class _FindPoolState extends State<FindPool> {
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 15.4746,
   );
-
-  TextEditingController dateTimeController = TextEditingController();
-  int? selectedSeats;
-  String? genderPreference = "Both";
 
   @override
   void initState() {
@@ -175,6 +182,9 @@ class _FindPoolState extends State<FindPool> {
                                     .format(fullDateTime);
 
                             dateTimeController.text = formattedDateTime;
+
+                            fireStoreTimestamp =
+                                Timestamp.fromDate(fullDateTime);
                           });
                         }
                       }
@@ -318,7 +328,39 @@ class _FindPoolState extends State<FindPool> {
                     height: 20,
                   ),
                   GestureDetector(
-                    onTap: () {
+                    onTap: () async {
+                      if (selectedSeats == null ||
+                          genderPreference == null ||
+                          fireStoreTimestamp == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please fill in a details!'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      String requestId = randomAlphaNumeric(28);
+                      Map<String, dynamic> PoolFindInfoMap = {
+                        'requestId': requestId,
+                        'userId': user!.uid,
+                        'startLocation': {
+                          'latitude': initialPos!.latitude,
+                          'longitude': initialPos.longitude,
+                        },
+                        'endLocation': {
+                          'latitude': finalPos!.latitude,
+                          'longitude': finalPos.longitude,
+                        },
+                        'time': fireStoreTimestamp,
+                        'seatsRequested': selectedSeats,
+                        'preferredGender': genderPreference,
+                        'status': "Pending",
+                      };
+
+                      await _findPoolDatabaseService.addPoolFind(
+                          context, requestId, PoolFindInfoMap);
+
                       // final appData =
                       //     Provider.of<AppData>(context, listen: false);
 
