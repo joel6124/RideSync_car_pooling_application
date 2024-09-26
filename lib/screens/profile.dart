@@ -1,10 +1,463 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:ride_sync/colours.dart';
+import 'package:ride_sync/screens/text_box.dart';
+import 'dart:ui';
 
-class ProfilePage extends StatelessWidget {
+import 'package:ride_sync/screens/verification.dart'; // Import to use the BackdropFilter
+
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  // Controllers to manage text input
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Dispose the controllers when the widget is removed from the tree
+    nameController.dispose();
+    phoneController.dispose();
+    emailController.dispose();
+    super.dispose();
+  }
+
+  // Populate controllers with initial values
+  void populateTextControllers() {
+    nameController.text = name;
+    phoneController.text = phoneNumber;
+    emailController.text = email;
+  }
+
+  final User? user = FirebaseAuth.instance.currentUser;
+  String phoneNumber = "Loading"; // Placeholder for phone number
+  String name = "Loading";
+  String email = "Loading"; // Placeholder for emailid
+  String gender = "Loading"; // Placeholder for gender
+  String imgURL = "Loading"; // Placeholder for Image
+  int totalPools = 0; // Change to int
+  int rating = 0;
+  bool isVerified = false;
+  // String driverLicenseNo ="Loading";
+
+  Future<void> editField(String field, String currentValue) async {
+    TextEditingController controller;
+
+    // Select the correct controller based on the field
+    if (field == 'name') {
+      controller = nameController;
+    } else if (field == 'number') {
+      controller = phoneController;
+    } else if (field == 'email') {
+      controller = emailController;
+    } else {
+      return;
+    }
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+            child: AlertDialog(
+              backgroundColor: deepGreen
+                  .withOpacity(0.1), // Background color for the AlertDialog
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                    8.0), // Rounded corners for AlertDialog
+                side:
+                    BorderSide(color: Colors.black, width: 0.5), // Black border
+              ),
+              title: Text(
+                'Edit $field',
+                style: TextStyle(
+                    color: const Color.fromARGB(255, 255, 255, 255),
+                    fontWeight: FontWeight.bold), // Text color for title
+              ),
+              content: TextField(
+                controller: controller,
+                decoration: InputDecoration(
+                  hintText: 'Enter new $field',
+                  filled: true,
+                  fillColor: const Color.fromARGB(
+                      255, 234, 234, 234), // Background color for the TextField
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                        8.0), // Rounded corners for TextField
+                  ),
+                ),
+                style: TextStyle(
+                    color: Colors.black), // Text color inside TextField
+              ),
+              actions: <Widget>[
+                ElevatedButton(
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                        color: const Color.fromARGB(255, 255, 255, 255)),
+                  ),
+                  style: TextButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    backgroundColor: const Color.fromARGB(
+                        255, 30, 79, 61), // Button background color
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                ElevatedButton(
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(
+                        color: const Color.fromARGB(255, 255, 255, 255)),
+                  ),
+                  style: TextButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    backgroundColor: const Color.fromARGB(255, 30, 79, 61),
+                  ),
+                  onPressed: () async {
+                    await saveUpdatedField(field, controller.text);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> saveUpdatedField(String field, String newValue) async {
+    if (user != null) {
+      try {
+        // Update the specific field in Firestore
+        await FirebaseFirestore.instance
+            .collection('Users')
+            .doc(user!.uid)
+            .update({field: newValue});
+
+        // Update the local state after successfully updating Firestore
+        setState(() {
+          if (field == 'name') {
+            name = newValue;
+          } else if (field == 'number') {
+            phoneNumber = newValue;
+          } else if (field == 'email') {
+            email = newValue;
+          }
+        });
+      } catch (e) {
+        print('Error updating $field: $e');
+      }
+    }
+  }
+
+  // Fetch phone number and name from Firestore
+  Future<void> fetchUserData() async {
+    if (user != null) {
+      try {
+        DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+            .collection('Users')
+            .doc(user!.uid)
+            .get();
+
+        if (documentSnapshot.exists) {
+          setState(() {
+            phoneNumber = documentSnapshot['phone'] ?? 'No Number Found';
+            name = documentSnapshot['name'] ?? 'No Name Found';
+            email = documentSnapshot['email'] ?? 'No Email_ID Found';
+            gender = documentSnapshot['gender'] ?? 'No gender Found';
+            imgURL = documentSnapshot['imgURL'] ?? 'No Image Found';
+            totalPools =
+                (documentSnapshot['totalPools'] ?? 0) as int; // Convert to int
+            rating = (documentSnapshot['totalPools'] ?? 0) as int;
+            isVerified = documentSnapshot['verifiedGender'] ?? false;
+            // driverLicenseNo = documentSnapshot['driverLicenseNo'] ?? 'No License Found';
+          });
+        } else {
+          setState(() {
+            phoneNumber = 'No Number Found';
+            name = 'No Name Found';
+            email = 'No Email Found';
+            gender = 'No Gender Found';
+            imgURL = 'No Image Found';
+            totalPools = 0; // Default value if no document found
+            rating = 0;
+            isVerified = false; // Default verification status
+            // driverLicenseNo = 'No License Found';
+          });
+        }
+      } catch (e) {
+        setState(() {
+          phoneNumber = 'Error fetching phone number';
+          name = 'Error fetching name';
+          email = 'Error fetching email';
+          gender = 'Error fetching gender';
+          imgURL = 'Error fetching Image';
+          totalPools = 0; // Default value on error
+          rating = 0;
+          isVerified = false; // Default verification status
+          // driverLicenseNo = 'Error fetching License';
+        });
+        print('Error fetching user data: $e');
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserData(); // Fetch phone number and name when the widget initializes
+  }
+
+  // Edit field function
+  Future<void> editfield(String field) async {
+    // Logic for editing fields
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      // backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
+        title: const Text(
+          'My Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        backgroundColor: deepGreen,
+      ),
+      body: ListView(
+        children: [
+          const SizedBox(height: 2),
+
+          const SizedBox(height: 20),
+          Center(
+            child: CircleAvatar(
+              radius: 60,
+              backgroundColor: Colors.grey[300],
+              backgroundImage: imgURL.isNotEmpty
+                  ? NetworkImage(imgURL)
+                  : NetworkImage(
+                      'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg'), // Default image URL
+            ),
+          ),
+
+          const SizedBox(height: 1),
+
+          // Verified user
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center, // Centering the row
+            children: [
+              Icon(
+                isVerified
+                    ? Icons.verified_user_outlined
+                    : Icons.sentiment_dissatisfied_sharp,
+                color:
+                    isVerified ? Colors.green : Color.fromARGB(255, 255, 0, 0),
+              ),
+              const SizedBox(
+                  width: 5), // Small space between the icon and the text
+              Text(
+                isVerified ? "User Verified" : "User Not Verified",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[900]),
+              ),
+            ],
+          ),
+
+          // Rating
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center, // Centering the row
+            children: [
+              const Icon(
+                Icons.star_rounded, // Star icon
+                color: Color.fromARGB(255, 255, 191, 0), // Color of the star
+                size: 22,
+              ),
+              // Small space between the icon and the text
+              Text(
+                rating.toDouble().toString(),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[900]),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          MyTextBox(
+            text: name,
+            sectionName: 'Name',
+            onPressed: () => editField('name', name),
+            prefixIcon: Container(
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25), color: deepGreen),
+              child: Padding(
+                padding: const EdgeInsets.all(13.0),
+                child: Icon(
+                  Icons.person,
+                  size: 24,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+
+          MyTextBox(
+            text: phoneNumber,
+            sectionName: 'Phone Number',
+            onPressed: () => editField('number', phoneNumber),
+            prefixIcon: Container(
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25), color: deepGreen),
+              child: Padding(
+                padding: const EdgeInsets.all(13.0),
+                child: Icon(
+                  Icons.phone_android,
+                  size: 24,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 1),
+
+          MyTextBox(
+            text: email,
+            sectionName: 'Email',
+            onPressed: () => editField('email', email),
+            prefixIcon: Container(
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25), color: deepGreen),
+              child: Padding(
+                padding: const EdgeInsets.all(13.0),
+                child: Icon(
+                  Icons.email,
+                  size: 24,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 1),
+
+          Stack(
+            children: [
+              MyTextBox(
+                text: totalPools.toString(),
+                sectionName: 'Rides Completed',
+                onPressed: null,
+                prefixIcon: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      color: deepGreen),
+                  child: Padding(
+                    padding: const EdgeInsets.all(13.0),
+                    child: Icon(
+                      Icons.local_taxi_outlined,
+                      size: 24,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 1),
+
+          Stack(
+            children: [
+              MyTextBox(
+                text: gender,
+                sectionName: 'Gender',
+                onPressed: null,
+                prefixIcon: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      color: deepGreen),
+                  child: Padding(
+                    padding: const EdgeInsets.all(13.0),
+                    child: Icon(
+                      Icons.male,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Stack(
+          //   children: [
+          //     MyTextBox(
+          //       text:driverLicenseNo, // This displays the fetched gender
+          //       sectionName: 'Driving License Number',,prefixIcon: Icon(Icons.drive_eta),
+          //       onPressed: null,
+          //     ),
+
+          //     Positioned(
+          //       left: 33, // Position the icon inside the box
+          //       top: 15,  // Adjust the position based on your needs
+          //       child: Container(
+          //         // Add a container to wrap the Row for proper positioning
+          //         child: const Row(
+          //           mainAxisSize: MainAxisSize.min, // Adjusts the row size to fit its content
+          //           children: [
+          //             Icon(Icons.male, color: Color.fromARGB(255, 13, 101, 42)),
+          //             SizedBox(width: 8), // Adds space between the icons
+          //             Icon(Icons.female, color: Color.fromARGB(255, 13, 101, 42)),
+          //           ],
+          //         ),
+          //       ),
+          //     ),
+          //   ],
+          // ),
+
+          const SizedBox(height: 20),
+
+          if (!isVerified) ...{
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => EditProfilePage()),
+                  );
+                },
+                child: const Text("Verify Gender"),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: const Color(0xFF00492E), // Text color
+                ),
+              ),
+            ),
+          }
+        ],
+      ),
+    );
   }
 }

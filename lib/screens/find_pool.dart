@@ -374,7 +374,16 @@ class _FindPoolState extends State<FindPool> {
                       // }
                       Navigator.of(context)
                           .push(MaterialPageRoute(builder: (context) {
-                        return ResultFindPool();
+                        return ResultFindPool(
+                          userStartLat: initialPos!.latitude,
+                          userStartLng: initialPos!.longitude,
+                          userEndLat: finalPos!.latitude,
+                          userEndLng: finalPos!.longitude,
+                          genderPreference: genderPreference ?? "Both",
+                          fireStoreTimestamp:
+                              fireStoreTimestamp ?? Timestamp.now(),
+                          seatsRequested: selectedSeats ?? 0,
+                        );
                       }));
                     },
                     child: Container(

@@ -50,6 +50,7 @@ dependencies:
   flutter_lints: ^4.0.0
   fl_chart: ^0.69.0
   random_string: ^2.3.1
+  image_picker: ^1.1.2
 
 
 dev_dependencies:

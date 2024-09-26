@@ -42,7 +42,17 @@ class MyApp extends StatelessWidget {
         title: 'RideSync',
         theme: ThemeData.light(),
         debugShowCheckedModeBanner: false,
-        // home: ResultFindPool(),
+        // home: ResultOfferPool(
+        //   userStartLat: 12.6876234,
+        //   userStartLng: 77.7072398,
+        //   userEndLat: 12.9347314,
+        //   userEndLng: 77.60522019999999,
+        //   availableSeats: 5,
+        //   genderPreference: 'Both',
+        //   fireStoreTimestamp: Timestamp.fromDate(
+        //       DateTime(2024, 9, 26, 6, 59)),
+        // ),
+        // home: ResultOfferPool(),
         // home: AddVehiclePage(),
         // home: MyVehicleScreen(),
         // home: OfferPool(),

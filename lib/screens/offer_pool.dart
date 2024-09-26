@@ -66,7 +66,7 @@ class _OfferPoolState extends State<OfferPool> {
     }
   }
 
-  Future<void> checkDrivingLicenseIfGiven(BuildContext context) async {
+  Future<bool> checkDrivingLicenseIfGiven(BuildContext context) async {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
@@ -75,17 +75,17 @@ class _OfferPoolState extends State<OfferPool> {
         final DocumentSnapshot docSnapshot = await userRef.get();
 
         if (docSnapshot.exists) {
-          // Cast docSnapshot data to Map<String, dynamic>
           final data = docSnapshot.data() as Map<String, dynamic>;
 
           if (data.containsKey('driverLicenseNo')) {
             final driverLicenseNo = data['driverLicenseNo'];
             if (driverLicenseNo != null && driverLicenseNo.isNotEmpty) {
               print('Driver License No: $driverLicenseNo');
-              return;
+              return true; // License provided
             }
           }
 
+          // Show Snackbar and navigate to AddDrivingLicense
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Driving License number not provided!'),
@@ -94,6 +94,7 @@ class _OfferPoolState extends State<OfferPool> {
           Navigator.of(context).push(MaterialPageRoute(builder: (context) {
             return AddDrivingLicense();
           }));
+          return false; // License not provided
         } else {
           print("No document found with ID: ${user.uid}");
         }
@@ -104,6 +105,7 @@ class _OfferPoolState extends State<OfferPool> {
         );
       }
     }
+    return false; // Default to false if no user found
   }
 
   final Completer<GoogleMapController> controllerGoogleMap =
@@ -500,7 +502,10 @@ class _OfferPoolState extends State<OfferPool> {
                         );
                         return;
                       }
-                      checkDrivingLicenseIfGiven(context);
+                      bool hasLicense =
+                          await checkDrivingLicenseIfGiven(context);
+                      if (!hasLicense) return;
+                      
                       String offerId = randomAlphaNumeric(28);
                       Map<String, dynamic> PoolOfferInfoMap = {
                         'offerId': offerId,
@@ -525,7 +530,27 @@ class _OfferPoolState extends State<OfferPool> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => ResultOfferPool()),
+                          builder: (context) => ResultOfferPool(
+                            userStartLat: initialPos!.latitude,
+                            userStartLng: initialPos!.longitude,
+                            userEndLat: finalPos!.latitude,
+                            userEndLng: finalPos!.longitude,
+                            availableSeats: selectedSeats ?? 0,
+                            genderPreference: genderPreference ?? "Both",
+                            fireStoreTimestamp:
+                                fireStoreTimestamp ?? Timestamp.now(),
+                          ),
+                          // builder: (context) => ResultOfferPool(
+                          //   userStartLat: 12.6876234,
+                          //   userStartLng: 77.7072398,
+                          //   userEndLat: 12.9347314,
+                          //   userEndLng: 77.60522019999999,
+                          //   availableSeats: 5,
+                          //   genderPreference: 'Both',
+                          //   fireStoreTimestamp: Timestamp.fromDate(
+                          //       DateTime(2024, 9, 26, 6, 59)),
+                          // ),
+                        ),
                       );
 
                       // developer.log(AppData().dropOffLocation!.placeId);
