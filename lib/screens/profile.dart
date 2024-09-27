@@ -1,10 +1,12 @@
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/screens/text_box.dart';
 import 'dart:ui';
-
+import 'dart:developer' as developer;
 import 'package:ride_sync/screens/verification.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -20,31 +22,30 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController emailController = TextEditingController();
 
   @override
-  void dispose() {
-    // Dispose the controllers when the widget is removed from the tree
-    nameController.dispose();
-    phoneController.dispose();
-    emailController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    fetchUserData();
   }
 
-  // Populate controllers with initial values
-  void populateTextControllers() {
-    nameController.text = name;
-    phoneController.text = phoneNumber;
-    emailController.text = email;
-  }
+  // @override
+  // void dispose() {
+  //   // Dispose the controllers when the widget is removed from the tree
+  //   nameController.dispose();
+  //   phoneController.dispose();
+  //   emailController.dispose();
+  //   super.dispose();
+  // }
 
   final User? user = FirebaseAuth.instance.currentUser;
-  String phoneNumber = "Loading"; // Placeholder for phone number
-  String name = "Loading";
-  String email = "Loading"; // Placeholder for emailid
-  String gender = "Loading"; // Placeholder for gender
-  String imgURL = "Loading"; // Placeholder for Image
-  int totalPools = 0; // Change to int
-  int rating = 0;
+  String phoneNumber = "";
+  String name = "";
+  String email = "";
+  String gender = "";
+  String imgURL = "";
+  int totalPools = 0;
+  double rating = 0;
   bool isVerified = false;
-  // String driverLicenseNo ="Loading";
+  // String driverLicenseNo ="";
 
   Future<void> editField(String field, String currentValue) async {
     TextEditingController controller;
@@ -108,8 +109,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   style: TextButton.styleFrom(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
-                    backgroundColor: const Color.fromARGB(
-                        255, 30, 79, 61), 
+                    backgroundColor: const Color.fromARGB(255, 30, 79, 61),
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -142,7 +142,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> saveUpdatedField(String field, String newValue) async {
     if (user != null) {
       try {
-        // Update the specific field in Firestore
         await FirebaseFirestore.instance
             .collection('Users')
             .doc(user!.uid)
@@ -164,7 +163,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Fetch phone number and name from Firestore
   Future<void> fetchUserData() async {
     if (user != null) {
       try {
@@ -182,8 +180,9 @@ class _ProfilePageState extends State<ProfilePage> {
             imgURL = documentSnapshot['imgURL'] ??
                 'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg';
             totalPools = (documentSnapshot['totalPools'] ?? 0) as int;
-            rating = (documentSnapshot['rating'] ?? 0) as int;
+            rating = (documentSnapshot['rating'] ?? 0.0) as double;
             isVerified = documentSnapshot['verifiedGender'];
+
             // driverLicenseNo = documentSnapshot['driverLicenseNo'] ?? 'No License Found';
           });
         } else {
@@ -195,7 +194,7 @@ class _ProfilePageState extends State<ProfilePage> {
             imgURL =
                 'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg';
             totalPools = 0;
-            rating = 0;
+            rating = 0.0;
             isVerified = false;
             // driverLicenseNo = 'No License Found';
           });
@@ -209,19 +208,13 @@ class _ProfilePageState extends State<ProfilePage> {
           imgURL =
               'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg';
           totalPools = 0; // Default value on error
-          rating = 0;
+          rating = 0.0;
           isVerified = false; // Default verification status
           // driverLicenseNo = 'Error fetching License';
         });
         print('Error fetching user data: $e');
       }
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchUserData(); // Fetch phone number and name when the widget initializes
   }
 
   // Edit field function
@@ -297,7 +290,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               // Small space between the icon and the text
               Text(
-                rating.toDouble().toString(),
+                rating.toString(),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey[900]),
               ),

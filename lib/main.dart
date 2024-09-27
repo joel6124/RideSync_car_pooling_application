@@ -10,7 +10,6 @@ import 'package:ride_sync/screens/home.dart';
 import 'package:ride_sync/screens/my_vehicle.dart';
 import 'package:ride_sync/screens/notifications.dart';
 import 'package:ride_sync/screens/offer_pool.dart';
-import 'package:ride_sync/screens/profile.dart';
 import 'package:ride_sync/screens/result_findPool.dart';
 import 'package:ride_sync/screens/result_offerPool.dart';
 import 'package:ride_sync/screens/rides.dart';
@@ -61,7 +60,7 @@ class MyApp extends StatelessWidget {
         // home: FindPool(),
         home: const SplashScreen(),
         // home: EcoDashboardScreen(),
-        // home: ProfilePage(),
+        // home: StartRide(),
       ),
     );
   }

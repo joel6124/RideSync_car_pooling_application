@@ -30,16 +30,13 @@ class AuthPage extends StatelessWidget {
                 future: checkUserRegistered(user),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    // While the future is loading, show a loading indicator
                     return const Center(
                         child: CircularProgressIndicator(
                       color: deepGreen,
                     ));
                   } else if (snapshot.hasError) {
-                    // If there's an error, show an error message
                     return const Center(child: Text('An error occurred'));
                   } else if (snapshot.hasData) {
-                    // Navigate based on the registration status
                     bool isRegistered = snapshot.data!;
                     if (isRegistered) {
                       return const HomePage();
@@ -52,7 +49,6 @@ class AuthPage extends StatelessWidget {
                       );
                     }
                   } else {
-                    // If no data, show a fallback UI
                     return const Center(child: Text('Something went wrong'));
                   }
                 },
@@ -78,8 +74,4 @@ class AuthPage extends StatelessWidget {
 
     return querySnapshot.docs.isNotEmpty;
   }
-
-  // Future<bool> fetchUserDetails(User? user) async {
-  //   final QuerySnapshot = await FirebaseFirestore.instance.collection('Users')
-  // }
 }
