@@ -354,7 +354,7 @@ class _ResultOfferPoolState extends State<ResultOfferPool> {
   final _poolRequests = FirebaseFirestore.instance.collection('PoolRequests');
   final _users = FirebaseFirestore.instance.collection('Users');
 
-  // Haversine formula to calculate distance between two lat-lng points
+  //RideMatchingAlgorithm (Haversine Algo)
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     const double radiusOfEarthKm = 6371.0; // Radius of the Earth in kilometers
     double latDistance = _degreeToRadian(lat2 - lat1);

@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/screens/text_box.dart';
 import 'dart:ui';
 
-import 'package:ride_sync/screens/verification.dart'; // Import to use the BackdropFilter
+import 'package:ride_sync/screens/verification.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -15,7 +15,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // Controllers to manage text input
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -110,7 +109,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                     backgroundColor: const Color.fromARGB(
-                        255, 30, 79, 61), // Button background color
+                        255, 30, 79, 61), 
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -180,11 +179,11 @@ class _ProfilePageState extends State<ProfilePage> {
             name = documentSnapshot['name'] ?? 'No Name Found';
             email = documentSnapshot['email'] ?? 'No Email_ID Found';
             gender = documentSnapshot['gender'] ?? 'No gender Found';
-            imgURL = documentSnapshot['imgURL'] ?? 'No Image Found';
-            totalPools =
-                (documentSnapshot['totalPools'] ?? 0) as int; // Convert to int
-            rating = (documentSnapshot['totalPools'] ?? 0) as int;
-            isVerified = documentSnapshot['verifiedGender'] ?? false;
+            imgURL = documentSnapshot['imgURL'] ??
+                'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg';
+            totalPools = (documentSnapshot['totalPools'] ?? 0) as int;
+            rating = (documentSnapshot['rating'] ?? 0) as int;
+            isVerified = documentSnapshot['verifiedGender'];
             // driverLicenseNo = documentSnapshot['driverLicenseNo'] ?? 'No License Found';
           });
         } else {
@@ -193,10 +192,11 @@ class _ProfilePageState extends State<ProfilePage> {
             name = 'No Name Found';
             email = 'No Email Found';
             gender = 'No Gender Found';
-            imgURL = 'No Image Found';
-            totalPools = 0; // Default value if no document found
+            imgURL =
+                'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg';
+            totalPools = 0;
             rating = 0;
-            isVerified = false; // Default verification status
+            isVerified = false;
             // driverLicenseNo = 'No License Found';
           });
         }
@@ -206,7 +206,8 @@ class _ProfilePageState extends State<ProfilePage> {
           name = 'Error fetching name';
           email = 'Error fetching email';
           gender = 'Error fetching gender';
-          imgURL = 'Error fetching Image';
+          imgURL =
+              'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg';
           totalPools = 0; // Default value on error
           rating = 0;
           isVerified = false; // Default verification status
@@ -400,11 +401,17 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: deepGreen),
                   child: Padding(
                     padding: const EdgeInsets.all(13.0),
-                    child: Icon(
-                      Icons.male,
-                      color: Colors.white,
-                      size: 24,
-                    ),
+                    child: gender == "male"
+                        ? Icon(
+                            Icons.male,
+                            color: Colors.white,
+                            size: 24,
+                          )
+                        : Icon(
+                            Icons.female,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                   ),
                 ),
               ),

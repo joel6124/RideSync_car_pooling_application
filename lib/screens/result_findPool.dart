@@ -342,7 +342,7 @@ class ResultFindPool extends StatefulWidget {
     required this.userEndLng,
     required this.genderPreference,
     required this.fireStoreTimestamp,
-    required this.seatsRequested, // Include seatsRequested
+    required this.seatsRequested,
     super.key,
   });
 
@@ -354,6 +354,7 @@ class _ResultFindPoolState extends State<ResultFindPool> {
   final _poolOffers = FirebaseFirestore.instance.collection('PoolOffers');
   final _users = FirebaseFirestore.instance.collection('Users');
 
+  //RideMatchingAlgorithm (Haversine Algo)
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     const double radiusOfEarthKm = 6371.0;
     double latDistance = _degreeToRadian(lat2 - lat1);
@@ -381,7 +382,7 @@ class _ResultFindPoolState extends State<ResultFindPool> {
           color: Colors.white,
         ),
         title: const Text(
-          'Available Pools',
+          'Matching Ride Givers',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ride_sync/colours.dart'; // Custom colors
+import 'package:ride_sync/colours.dart';
+import 'package:ride_sync/screens/startRide.dart'; // Custom colors
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -151,7 +152,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
-                          backgroundColor: Colors.green,
+                          backgroundColor: deepGreen,
                         ),
                         child: const Text(
                           'Accept',
@@ -167,7 +168,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
-                          backgroundColor: Colors.red,
+                          backgroundColor:
+                              const Color.fromARGB(255, 152, 18, 8),
                         ),
                         child: const Text(
                           'Decline',
@@ -197,49 +199,76 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            CircleAvatar(
-              backgroundColor: isAccepted ? Colors.green : Colors.red,
-              radius: 25,
-              child: Icon(
-                isAccepted ? Icons.check_circle_outline : Icons.cancel_outlined,
-                color: Colors.white,
-                size: 30,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  backgroundColor: isAccepted ? Colors.green : Colors.red,
+                  radius: 25,
+                  child: Icon(
+                    isAccepted
+                        ? Icons.check_circle_outline
+                        : Icons.cancel_outlined,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        notification['title']!,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        notification['message']!,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        notification['time']!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black45,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    notification['title']!,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    notification['message']!,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    notification['time']!,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black45,
-                    ),
-                  ),
-                ],
+            const SizedBox(height: 10),
+            if (isAccepted)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => StartRide()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  backgroundColor: deepGreen,
+                ),
+                child: const Text(
+                  'Start Ride',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -305,7 +334,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  // Widget to build a ride canceled notification (for Ride Offerer or Rider)
   Widget _buildCanceledNotification(Map<String, dynamic> notification) {
     return Container(
       decoration: BoxDecoration(

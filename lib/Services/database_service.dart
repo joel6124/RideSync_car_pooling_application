@@ -38,7 +38,6 @@ class DrivingLicenseDatabaseService {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        // Update the driver's license in Firestore
         await FirebaseFirestore.instance
             .collection('Users')
             .doc(user.uid)

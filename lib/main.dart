@@ -10,12 +10,14 @@ import 'package:ride_sync/screens/home.dart';
 import 'package:ride_sync/screens/my_vehicle.dart';
 import 'package:ride_sync/screens/notifications.dart';
 import 'package:ride_sync/screens/offer_pool.dart';
+import 'package:ride_sync/screens/profile.dart';
 import 'package:ride_sync/screens/result_findPool.dart';
 import 'package:ride_sync/screens/result_offerPool.dart';
 import 'package:ride_sync/screens/rides.dart';
 import 'package:ride_sync/screens/searchScreen.dart';
 import 'package:ride_sync/screens/splash_screen.dart';
 import 'package:ride_sync/screens/addVehicle.dart';
+import 'package:ride_sync/screens/startRide.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -59,7 +61,7 @@ class MyApp extends StatelessWidget {
         // home: FindPool(),
         home: const SplashScreen(),
         // home: EcoDashboardScreen(),
-        // home: NotificationsScreen(),
+        // home: ProfilePage(),
       ),
     );
   }
