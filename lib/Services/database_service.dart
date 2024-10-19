@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:developer' as developer;
@@ -5,8 +7,12 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:ride_sync/colours.dart';
 
+const String PoolOffers_collection_ref = "PoolOffers";
+const String vehicle_collection_ref = "Cars";
+const String PoolRequests_collection_ref = "PoolRequests";
+const String Rides_collection_ref = "Rides";
+
 class VehicleDatabaseService {
-  final String vehicle_collection_ref = "Cars";
   Future<void> addVehicle(
       context, String carId, Map<String, dynamic> VehicleInfoMap) async {
     showDialog(
@@ -30,6 +36,50 @@ class VehicleDatabaseService {
       Navigator.pop(context);
       developer.log("Error adding vehicle data: $e");
     }
+  }
+
+  Future<List<dynamic>> fetchVehicleDetails(String carId) async {
+    try {
+      var carDoc = await FirebaseFirestore.instance
+          .collection(vehicle_collection_ref)
+          .doc(carId)
+          .get();
+
+      // Check if the document exists
+      if (carDoc.exists) {
+        var carData = carDoc.data();
+        developer.log("Fetched Car Data: ${carData.toString()}");
+
+        String? carType = carData?['carType'];
+        developer.log("Car Type: $carType");
+
+        if (carType == "Diesel" || carType == "Petrol") {
+          double? mileage = carData?['mileage'];
+          // Navigator.pop(context);
+          developer.log("Fetched Vehicle Details successfully! - mileage");
+          return [mileage, false];
+        } else if (carType == "EV") {
+          // Add more conditions as necessary
+          String? energyConsumption = carData?['energyConsumption'];
+          // Navigator.pop(context);
+          developer.log("Fetched Vehicle Details successfully! - EV");
+          return [energyConsumption, true];
+        } else {
+          // Navigator.pop(context);
+          throw Exception("Unsupported car type: $carType");
+        }
+      } else {
+        developer.log("Car with ID $carId does not exist.");
+      }
+    } catch (e) {
+      // Navigator.pop(context);
+      developer.log("Error fetching vehicle data: $e");
+      // Optionally, you can rethrow the error or handle it differently
+    }
+
+    // Ensure the function always returns something (an empty list in case of failure)
+    // Navigator.pop(context); // In case it's not closed within the try block
+    return []; // Returning an empty list as a fallback
   }
 }
 
@@ -62,7 +112,6 @@ class DrivingLicenseDatabaseService {
 }
 
 class OfferPoolDatabaseService {
-  final String PoolOffers_collection_ref = "PoolOffers";
   Future<void> addPoolOffer(
       context, String offerId, Map<String, dynamic> PoolOfferInfoMap) async {
     showDialog(
@@ -92,7 +141,6 @@ class OfferPoolDatabaseService {
 }
 
 class FindPoolDatabaseService {
-  final String PoolRequests_collection_ref = "PoolRequests";
   Future<void> addPoolFind(
       context, String requestId, Map<String, dynamic> PoolFindInfoMap) async {
     showDialog(
@@ -116,6 +164,229 @@ class FindPoolDatabaseService {
       } catch (e) {
         Navigator.pop(context);
         developer.log("Error adding Pool Request : $e");
+      }
+    }
+  }
+}
+
+class RidesDatabaseService {
+  Future<void> CreateRide(
+      String rideId, Map<String, dynamic> CreateRideInfoMap) async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection(Rides_collection_ref)
+            .doc(rideId)
+            .set(CreateRideInfoMap);
+        developer.log("Ride Creted successfully!");
+        // Navigator.pop(context);
+      } catch (e) {
+        // Navigator.pop(context);
+        developer.log("Error creating ride : $e");
+      }
+    }
+  }
+
+  Future<String> UpdateSeatsOffered_OfferSeat(BuildContext context,
+      String offerId, int seatsRequested, int availableSeats) async {
+    // showDialog(
+    //     context: context,
+    //     builder: (context) {
+    //       return const Center(
+    //         child: CircularProgressIndicator(
+    //           color: deepGreen,
+    //         ),
+    //       );
+    //     });
+    try {
+      await FirebaseFirestore.instance
+          .collection(PoolOffers_collection_ref)
+          .doc(offerId)
+          .update({
+        'availableSeats': (availableSeats - seatsRequested),
+      });
+
+      var updatedDoc = await FirebaseFirestore.instance
+          .collection(PoolOffers_collection_ref)
+          .doc(offerId)
+          .get();
+
+      if (updatedDoc.exists) {
+        // Retrieve the carId from the document
+        String? carId = updatedDoc.data()?['carId'];
+
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   const SnackBar(content: Text('Number of seats updated successfully')),
+        // );
+
+        // Navigator.of(context).pop();
+        return carId!;
+      } else {
+        throw 'Document not found after update';
+      }
+    } catch (e) {
+      print("Error updating number of seats: $e");
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('Failed to update number of seats: $e')),
+      // );
+      // Navigator.of(context).pop(); // Close the dialog if there's an error
+      return ""; // Return null in case of an error
+    }
+  }
+
+  Future<void> UpdateRequestStatus(String requestId) async {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection(PoolRequests_collection_ref)
+            .doc(requestId)
+            .update({
+          'status': 'Accepted',
+        });
+        developer.log("Status of Ride Request updated successfully!");
+        // Navigator.pop(context);
+      } catch (e) {
+        // Navigator.pop(context);
+        developer.log("Error updating request : $e");
+      }
+    }
+  }
+
+//   Future<String> UpdateSeatsOffered_RequestSeat(
+//     BuildContext context, String offerId, int seatsRequested, int availableSeats) async {
+
+//   // Show a loading dialog
+//   showDialog(
+//     context: context,
+//     builder: (context) {
+//       return const Center(
+//         child: CircularProgressIndicator(
+//           color: deepGreen,
+//         ),
+//       );
+//     },
+//     barrierDismissible: false,  // Prevent dismissing by tapping outside
+//   );
+
+//   try {
+//     // Perform Firestore update
+//     await FirebaseFirestore.instance
+//         .collection(PoolOffers_collection_ref)
+//         .doc(offerId)
+//         .update({
+//       'availableSeats': (availableSeats - seatsRequested),
+//     });
+
+//     // Fetch updated document to get the car ID
+//     var updatedDoc = await FirebaseFirestore.instance
+//         .collection(PoolOffers_collection_ref)
+//         .doc(offerId)
+//         .get();
+
+//     if (updatedDoc.exists) {
+//       String? carId = updatedDoc.data()?['carId'];
+
+//       // First, close the dialog
+//       if (Navigator.of(context).canPop()) {
+//         Navigator.of(context).pop();  // Close the loading dialog
+//       }
+
+//       // Check if the widget is still mounted before showing the snackbar
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           const SnackBar(content: Text('Number of seats updated successfully')),
+//         );
+//       }
+
+//       return carId!;
+//     } else {
+//       throw 'Document not found after update';
+//     }
+
+//   } catch (e) {
+//     print("Error updating number of seats: $e");
+
+//     // Ensure that the dialog is closed
+//     if (Navigator.of(context).canPop()) {
+//       Navigator.of(context).pop();  // Close the loading dialog
+//     }
+
+//     // Only show the snackbar if the widget is still mounted
+//     if (mounted) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('Failed to update number of seats: $e')),
+//       );
+//     }
+
+//     return "";
+//   }
+// }
+
+  Future<void> cancelRideRequest(
+      BuildContext context, DocumentSnapshot<Object?> ride) async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: deepGreen,
+            ),
+          );
+        });
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection(Rides_collection_ref)
+            .doc(ride['rideId'])
+            .update({
+          'passengers': FieldValue.arrayRemove([user.uid]),
+        });
+        developer.log("cancelRideRequest successfull!");
+        Navigator.pop(context);
+      } catch (e) {
+        Navigator.pop(context);
+        developer.log("Error cancelRideRequest : $e");
+      }
+    }
+  }
+
+  Future<void> cancelRideOffer(
+      BuildContext context, DocumentSnapshot<Object?> ride) async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: deepGreen,
+            ),
+          );
+        });
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection(Rides_collection_ref)
+            .doc(ride['rideId'])
+            .update({
+          'status': 'Cancelled',
+        });
+        await FirebaseFirestore.instance
+            .collection(PoolOffers_collection_ref)
+            .doc(ride['offerId'])
+            .update({
+          'status': 'Cancelled',
+        });
+        developer.log("cancelRide Offer successfull!");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Offer cancelled successfully')),
+        );
+        Navigator.pop(context);
+      } catch (e) {
+        Navigator.pop(context);
+        developer.log("Error cancelRide Offer : $e");
       }
     }
   }

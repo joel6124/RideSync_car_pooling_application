@@ -76,7 +76,7 @@
 //                             final userData =
 //                                 userSnapshot.data() as Map<String, dynamic>;
 
-//                             return CarpoolOfferCard(
+//                             return CarpoolRequestCard(
 //                               profilePic: userData['imgURL'] ??
 //                                   'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg',
 //                               name: userData['name'],
@@ -143,7 +143,7 @@
 //   }
 // }
 
-// class CarpoolOfferCard extends StatelessWidget {
+// class CarpoolRequestCard extends StatelessWidget {
 //   final String profilePic;
 //   final String name;
 //   final double rating;
@@ -155,7 +155,7 @@
 //   final double totalCo2Saved;
 //   final bool isVerifiedGender;
 
-//   CarpoolOfferCard({
+//   CarpoolRequestCard({
 //     required this.profilePic,
 //     required this.name,
 //     required this.rating,
@@ -322,9 +322,16 @@
 
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:random_string/random_string.dart';
+import 'package:ride_sync/Services/database_service.dart';
 import 'package:ride_sync/colours.dart';
+import 'package:ride_sync/screens/home.dart';
+import 'dart:developer' as dev;
+
+import 'package:ride_sync/screens/rides.dart';
 
 class ResultFindPool extends StatefulWidget {
   final double userStartLat;
@@ -333,7 +340,9 @@ class ResultFindPool extends StatefulWidget {
   final double userEndLng;
   final String genderPreference;
   final Timestamp fireStoreTimestamp;
-  final int seatsRequested; // New parameter for requested seats
+  final int seatsRequested;
+  final String distance;
+  final String requestId;
 
   const ResultFindPool({
     required this.userStartLat,
@@ -343,7 +352,9 @@ class ResultFindPool extends StatefulWidget {
     required this.genderPreference,
     required this.fireStoreTimestamp,
     required this.seatsRequested,
+    required this.distance,
     super.key,
+    required this.requestId,
   });
 
   @override
@@ -353,6 +364,9 @@ class ResultFindPool extends StatefulWidget {
 class _ResultFindPoolState extends State<ResultFindPool> {
   final _poolOffers = FirebaseFirestore.instance.collection('PoolOffers');
   final _users = FirebaseFirestore.instance.collection('Users');
+  final User? user = FirebaseAuth.instance.currentUser;
+
+  double endDistance = 0.0, startDistance = 0.0;
 
   //RideMatchingAlgorithm (Haversine Algo)
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -406,10 +420,72 @@ class _ResultFindPoolState extends State<ResultFindPool> {
                 }
                 if (poolSnapshot.hasData &&
                     poolSnapshot.data!.docs.isNotEmpty) {
+                  List<QueryDocumentSnapshot> filteredDocs =
+                      poolSnapshot.data!.docs.where((doc) {
+                    final startLocation = doc['startLocation'];
+                    final endLocation = doc['endLocation'];
+                    final double startLat = startLocation['latitude'];
+                    final double startLng = startLocation['longitude'];
+                    final double endLat = endLocation['latitude'];
+                    final double endLng = endLocation['longitude'];
+
+                    startDistance = calculateDistance(widget.userStartLat,
+                        widget.userStartLng, startLat, startLng);
+                    endDistance = calculateDistance(
+                        widget.userEndLat, widget.userEndLng, endLat, endLng);
+
+                    bool isWithinRadius =
+                        (startDistance <= 2.0 && endDistance <= 2.0);
+                    dev.log(
+                        'Start Distance: $startDistance, End Distance: $endDistance');
+
+                    bool genderMatch =
+                        doc['preferredGender'] == widget.genderPreference;
+
+                    DateTime docDateTime = (doc['time'] as Timestamp).toDate();
+                    DateTime userSelectedDateTime =
+                        widget.fireStoreTimestamp.toDate();
+
+                    bool isSameDate =
+                        docDateTime.year == userSelectedDateTime.year &&
+                            docDateTime.month == userSelectedDateTime.month &&
+                            docDateTime.day == userSelectedDateTime.day;
+
+                    DateTime startTime =
+                        userSelectedDateTime.subtract(Duration(hours: 2));
+                    DateTime endTime =
+                        userSelectedDateTime.add(Duration(hours: 2));
+
+                    bool isWithinTimeBuffer = docDateTime.isAfter(startTime) &&
+                        docDateTime.isBefore(endTime);
+
+                    bool dateTimeMatch = isSameDate && isWithinTimeBuffer;
+
+                    // Check for seats
+                    int availableSeats = doc['availableSeats'] ?? 0;
+                    bool seatsAvailable =
+                        availableSeats >= widget.seatsRequested;
+
+                    bool isNotCurrentUser = (doc['userId'] != user!.uid);
+
+                    bool isNotCancelled = (doc['status'] != 'Cancelled');
+
+                    return isWithinRadius &&
+                        genderMatch &&
+                        dateTimeMatch &&
+                        seatsAvailable &&
+                        isNotCurrentUser &&
+                        isNotCancelled;
+                  }).toList();
+
                   List<Future<DocumentSnapshot>> userDetails =
-                      poolSnapshot.data!.docs.map((poolOffersSnapshot) {
+                      filteredDocs.map((poolOffersSnapshot) {
                     return _users.doc(poolOffersSnapshot['userId']).get();
                   }).toList();
+                  // List<Future<DocumentSnapshot>> userDetails =
+                  //     poolSnapshot.data!.docs.map((poolOffersSnapshot) {
+                  //   return _users.doc(poolOffersSnapshot['userId']).get();
+                  // }).toList();
 
                   return FutureBuilder(
                     future: Future.wait(userDetails),
@@ -425,75 +501,19 @@ class _ResultFindPoolState extends State<ResultFindPool> {
                       }
 
                       if (userSnapshots.hasData) {
-                        List<QueryDocumentSnapshot> filteredDocs =
-                            poolSnapshot.data!.docs.where((doc) {
-                          final startLocation = doc['startLocation'];
-                          final endLocation = doc['endLocation'];
-                          final double startLat = startLocation['latitude'];
-                          final double startLng = startLocation['longitude'];
-                          final double endLat = endLocation['latitude'];
-                          final double endLng = endLocation['longitude'];
-
-                          double startDistance = calculateDistance(
-                              widget.userStartLat,
-                              widget.userStartLng,
-                              startLat,
-                              startLng);
-                          double endDistance = calculateDistance(
-                              widget.userEndLat,
-                              widget.userEndLng,
-                              endLat,
-                              endLng);
-
-                          bool isWithinRadius =
-                              startDistance <= 2.0 && endDistance <= 2.0;
-
-                          bool genderMatch =
-                              doc['preferredGender'] == widget.genderPreference;
-
-                          DateTime docDateTime =
-                              (doc['time'] as Timestamp).toDate();
-                          DateTime userSelectedDateTime =
-                              widget.fireStoreTimestamp.toDate();
-
-                          bool isSameDate = docDateTime.year ==
-                                  userSelectedDateTime.year &&
-                              docDateTime.month == userSelectedDateTime.month &&
-                              docDateTime.day == userSelectedDateTime.day;
-
-                          DateTime startTime =
-                              userSelectedDateTime.subtract(Duration(hours: 2));
-                          DateTime endTime =
-                              userSelectedDateTime.add(Duration(hours: 2));
-
-                          bool isWithinTimeBuffer =
-                              docDateTime.isAfter(startTime) &&
-                                  docDateTime.isBefore(endTime);
-
-                          bool dateTimeMatch = isSameDate && isWithinTimeBuffer;
-
-                          // Check for seats
-                          int availableSeats = doc['availableSeats'] ?? 0;
-                          bool seatsAvailable =
-                              availableSeats >= widget.seatsRequested;
-
-                          return isWithinRadius &&
-                              genderMatch &&
-                              dateTimeMatch &&
-                              seatsAvailable;
-                        }).toList();
-
                         if (filteredDocs.isNotEmpty) {
                           return ListView.builder(
                             itemCount: filteredDocs.length,
                             itemBuilder: (context, index) {
                               final poolOffersSnapshot = filteredDocs[index];
                               final userSnapshot = userSnapshots.data![index];
-
+                              dev.log((filteredDocs.length ==
+                                      userSnapshots.data!.length)
+                                  .toString());
                               final userData =
                                   userSnapshot.data() as Map<String, dynamic>;
-
-                              return CarpoolOfferCard(
+                              dev.log(userData.toString());
+                              return CarpoolRequestCard(
                                 profilePic: userData['imgURL'] ??
                                     'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg',
                                 name: userData['name'],
@@ -503,14 +523,38 @@ class _ResultFindPoolState extends State<ResultFindPool> {
                                 totalPools: userData['totalPools'] ?? 0,
                                 time: DateFormat('HH:mm').format(
                                     poolOffersSnapshot['time'].toDate()),
-                                walk_1_dist: '820 m', // Hardcoded for now
-                                ride_dist: '14.13 km', // Hardcoded for now
-                                walk_2_dist: '160 m', // Hardcoded for now
+                                walk_1_dist:
+                                    '${startDistance.toStringAsFixed(2)} km',
+                                ride_dist: widget.distance,
+                                walk_2_dist:
+                                    '${endDistance.toStringAsFixed(2)} km',
                                 totalCo2Saved:
                                     (userData['totalCo2Saved'] is int)
                                         ? userData['totalCo2Saved'].toDouble()
                                         : userData['totalCo2Saved'] ?? 0.0,
                                 isVerifiedGender: userData['verifiedGender'],
+                                offerId: poolOffersSnapshot['offerId'],
+                                seatsRequested: widget.seatsRequested,
+                                availableSeats:
+                                    poolOffersSnapshot['availableSeats'],
+                                userId_SeatRequest: user!.uid,
+                                duration: poolOffersSnapshot['duration'],
+                                startTime: poolOffersSnapshot['time'],
+                                startLocationName:
+                                    poolOffersSnapshot['startLocationName'],
+                                endLocationName:
+                                    poolOffersSnapshot['endLocationName'],
+                                userStartLat:
+                                    poolOffersSnapshot['startLocation']
+                                        ['latitude'],
+                                userStartLng:
+                                    poolOffersSnapshot['startLocation']
+                                        ['longitude'],
+                                userEndLat: poolOffersSnapshot['endLocation']
+                                    ['latitude'],
+                                userEndLng: poolOffersSnapshot['endLocation']
+                                    ['longitude'],
+                                requestId: widget.requestId,
                               );
                             },
                           );
@@ -566,7 +610,7 @@ class _ResultFindPoolState extends State<ResultFindPool> {
   }
 }
 
-class CarpoolOfferCard extends StatelessWidget {
+class CarpoolRequestCard extends StatelessWidget {
   final String profilePic;
   final String name;
   final double rating;
@@ -575,10 +619,23 @@ class CarpoolOfferCard extends StatelessWidget {
   final String walk_1_dist;
   final String ride_dist;
   final String walk_2_dist;
+  final String duration;
+  final String startLocationName;
+  final String endLocationName;
+  final double userStartLat;
+  final double userStartLng;
+  final double userEndLat;
+  final double userEndLng;
+  final Timestamp startTime;
   final double totalCo2Saved;
   final bool isVerifiedGender;
+  final String offerId;
+  final int seatsRequested;
+  final int availableSeats;
+  final String userId_SeatRequest;
+  final String requestId;
 
-  CarpoolOfferCard({
+  CarpoolRequestCard({
     required this.profilePic,
     required this.name,
     required this.rating,
@@ -589,7 +646,24 @@ class CarpoolOfferCard extends StatelessWidget {
     required this.walk_2_dist,
     required this.totalCo2Saved,
     required this.isVerifiedGender,
+    required this.offerId,
+    required this.seatsRequested,
+    required this.availableSeats,
+    required this.userId_SeatRequest,
+    required this.duration,
+    required this.startTime,
+    required this.startLocationName,
+    required this.endLocationName,
+    required this.userStartLat,
+    required this.userStartLng,
+    required this.userEndLat,
+    required this.userEndLng,
+    required this.requestId,
   });
+
+  final _RidesDatabaseService = RidesDatabaseService();
+
+  final _VehicleDatabaseService = VehicleDatabaseService();
 
   @override
   Widget build(BuildContext context) {
@@ -723,7 +797,193 @@ class CarpoolOfferCard extends StatelessWidget {
                     ],
                   ),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      try {
+                        // showDialog(
+                        //     context: context,
+                        //     builder: (context) {
+                        //       return const Center(
+                        //         child: CircularProgressIndicator(
+                        //           color: deepGreen,
+                        //         ),
+                        //       );
+                        //     });
+                        // Handle carId and seat update
+                        String? carId = await _RidesDatabaseService
+                            .UpdateSeatsOffered_OfferSeat(
+                          context, // Use the saved context
+                          offerId,
+                          seatsRequested,
+                          availableSeats,
+                        );
+
+                        if (carId == null) {
+                          throw Exception("Car ID is null.");
+                        }
+                        dev.log(carId);
+
+                        if (ride_dist == null || ride_dist.isEmpty) {
+                          throw Exception("Invalid ride distance.");
+                        }
+                        dev.log(ride_dist);
+
+                        String ride_dist_double =
+                            ride_dist.replaceAll(RegExp(r'[^0-9.]'), '');
+                        double? ride_dist_double_km =
+                            double.tryParse(ride_dist_double);
+                        dev.log(ride_dist_double_km.toString());
+                        if (ride_dist_double_km == null) {
+                          throw Exception("Failed to parse ride distance.");
+                        }
+
+                        List<dynamic> costSharingData =
+                            await _VehicleDatabaseService.fetchVehicleDetails(
+                                carId);
+
+                        dev.log(costSharingData.toString());
+                        if (costSharingData.isEmpty ||
+                            costSharingData.length < 2) {
+                          dev.log(costSharingData.toString());
+                          throw Exception("Failed to fetch vehicle details.");
+                        }
+
+                        final FirebaseFirestore _firestore =
+                            FirebaseFirestore.instance;
+                        String rideId = randomAlphaNumeric(28);
+                        dev.log(rideId);
+                        Map<String, dynamic> CreateRideInfoMap = {
+                          'rideId': rideId,
+                          'offerId': offerId,
+                          'passengers': [userId_SeatRequest],
+                          'startLocation': {
+                            'latitude': userStartLat,
+                            'longitude': userStartLng,
+                          },
+                          'startLocationName': startLocationName,
+                          'endLocation': {
+                            'latitude': userEndLat,
+                            'longitude': userEndLng,
+                          },
+                          'endLocationName': endLocationName,
+                          'startTime': startTime,
+                          'duration': duration,
+                          'distance': ride_dist_double_km,
+                          'status': "Pending",
+                        };
+
+                        final ridesCollection = _firestore.collection('Rides');
+
+                        final existingRideSnapshot = await ridesCollection
+                            .where('offerId',
+                                isEqualTo: CreateRideInfoMap['offerId'])
+                            .limit(1)
+                            .get();
+
+                        // Navigator.of(context).pop();
+                        // showAddedToRidePopup(context, name);
+                        if (existingRideSnapshot.docs.isEmpty) {
+                          double costPerPerson = calculateCostSharing(
+                            distance: ride_dist_double_km,
+                            fuelOrEnergyConsumption: costSharingData[0],
+                            numberOfPassengers: 2,
+                            isEV: costSharingData[1],
+                          );
+                          dev.log(costPerPerson.toString());
+                          double co2Saved =
+                              calculateCO2Saved(ride_dist_double_km);
+                          dev.log(co2Saved.toString());
+                          CreateRideInfoMap['costPerPassenger'] = costPerPerson;
+                          CreateRideInfoMap['co2Saved'] = co2Saved;
+                          // showDialog(
+                          //     context: context,
+                          //     builder: (context) {
+                          //       return const Center(
+                          //         child: CircularProgressIndicator(
+                          //           color: deepGreen,
+                          //         ),
+                          //       );
+                          //     });
+                          await _RidesDatabaseService.CreateRide(
+                              rideId, CreateRideInfoMap);
+                          await _RidesDatabaseService.UpdateRequestStatus(
+                              requestId);
+                          // Navigator.of(context).pop();
+                          // createRide(context,rideId,CreateRideInfoMap);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Ride created successfully.')),
+                          );
+                        } else {
+                          // final existingRideDoc =
+                          //     existingRideSnapshot.docs.first;
+                          // final existingRideData = existingRideDoc.data();
+
+                          // if (!existingRideData.containsKey('passengers')) {
+                          //   throw Exception(
+                          //       "Passengers field is missing in the existing ride.");
+                          // }
+
+                          // List<dynamic> passengers =
+                          //     existingRideData['passengers'];
+                          // String newPassenger =
+                          //     CreateRideInfoMap['passengers'][0];
+
+                          // await ridesCollection.doc(existingRideDoc.id).update({
+                          //   'passengers': FieldValue.arrayUnion([newPassenger]),
+                          // });
+
+                          //addeddd
+                          final existingRideDoc =
+                              existingRideSnapshot.docs.first;
+                          final existingRideData = existingRideDoc.data();
+                          List<dynamic> passengers =
+                              existingRideData['passengers'];
+
+                          if (passengers == null) {
+                            throw Exception(
+                                "Passengers field is missing in the existing ride.");
+                          }
+                          // Add new passenger to the ride
+                          String newPassenger =
+                              CreateRideInfoMap['passengers'][0];
+                          await ridesCollection.doc(existingRideDoc.id).update({
+                            'passengers': FieldValue.arrayUnion([
+                              newPassenger
+                            ]), // Adds new passenger if not already in array
+                          });
+
+                          // Recalculate cost per passenger based on the updated number of passengers
+                          double costPerPerson = calculateCostSharing(
+                            distance: ride_dist_double_km,
+                            fuelOrEnergyConsumption: costSharingData[0],
+                            numberOfPassengers:
+                                passengers.length + 1, // Add the new passenger
+                            isEV: costSharingData[1],
+                          );
+                          // Update cost per passenger in Firestore
+                          await ridesCollection.doc(existingRideDoc.id).update({
+                            'costPerPassenger': costPerPerson,
+                          });
+                          await _RidesDatabaseService.UpdateRequestStatus(
+                              requestId);
+                          dev.log("Ride Updated successfully!");
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Ride updated successfully.')),
+                          );
+                        }
+                      } catch (e) {
+                        dev.log(
+                            'Error creating or updating ride: ${e.toString()}');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Failed to create or update ride: $e')),
+                        );
+                      }
+                    },
                     child: const Text('Request Seat',
                         style: TextStyle(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
@@ -740,5 +1000,123 @@ class CarpoolOfferCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void showAddedToRidePopup(BuildContext context, String name) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          icon: Icon(
+            Icons.check_circle,
+            size: 100,
+            color: lightGreen,
+          ),
+          title: Row(
+            children: [
+              SizedBox(width: 10), // Space between icon and title
+              Expanded(
+                child: Text(
+                  'Seat Requested Successfully!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Container(
+            padding: EdgeInsets.symmetric(vertical: 10), // Vertical padding
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Size of the dialog
+              children: [
+                SizedBox(height: 10), // Space between text elements
+                Text.rich(
+                  TextSpan(
+                    text: "You've successfully offered a seat to ",
+                    style: TextStyle(
+                        fontSize: 14), // Regular style for normal text
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: name,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold), // Bold style for name
+                      ),
+                      TextSpan(
+                        text: "! 🚗💚\nEnjoy your ride and the company! 😊",
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                  (Route<dynamic> route) => false,
+                );
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) {
+                  return RidesPage();
+                }));
+              },
+              child: Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  color: lightGreen,
+                ),
+                child: Text(
+                  'Awesome!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  double calculateCostSharing({
+    required double distance, // Distance in km
+    required double fuelOrEnergyConsumption, // Mileage or energy consumption
+    // required double fuelOrEnergyPrice, // Price per liter (petrol/diesel) or per kWh (EV)
+    required int
+        numberOfPassengers, // Total number of people (including driver)
+    required bool isEV, // If the vehicle is an EV
+  }) {
+    double totalCost;
+
+    if (isEV) {
+      // Energy consumption for EV vehicles
+      double energyUsed = distance * fuelOrEnergyConsumption; // kWh
+      totalCost = energyUsed * 87.5; // Total cost in currency
+    } else {
+      // Fuel consumption for petrol/diesel vehicles
+      double fuelUsed = distance / fuelOrEnergyConsumption; // Liters
+      totalCost = fuelUsed * 102; // Total cost in currency
+    }
+
+    // Cost per person (including driver)
+    return totalCost / numberOfPassengers;
+  }
+
+  double calculateCO2Saved(double distance) {
+    double co2PerKm = 0.21; // Example CO2 emission per km
+    return distance * co2PerKm;
   }
 }

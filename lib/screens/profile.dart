@@ -43,7 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String gender = "";
   String imgURL = "";
   int totalPools = 0;
-  double rating = 0;
+  double rating = 0.0;
   bool isVerified = false;
   // String driverLicenseNo ="";
 
@@ -180,7 +180,8 @@ class _ProfilePageState extends State<ProfilePage> {
             imgURL = documentSnapshot['imgURL'] ??
                 'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg';
             totalPools = (documentSnapshot['totalPools'] ?? 0) as int;
-            rating = (documentSnapshot['rating'] ?? 0.0) as double;
+            rating = (documentSnapshot['rating'] ?? 0.0).toDouble();
+
             isVerified = documentSnapshot['verifiedGender'];
 
             // driverLicenseNo = documentSnapshot['driverLicenseNo'] ?? 'No License Found';

@@ -92,7 +92,7 @@ class Drawer_Navbar extends StatelessWidget {
             title: const Text('My Rides'),
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-                return RidesScreen();
+                return RidesPage();
               }));
             },
           ),

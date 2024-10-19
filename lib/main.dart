@@ -57,10 +57,12 @@ class MyApp extends StatelessWidget {
         // home: AddVehiclePage(),
         // home: MyVehicleScreen(),
         // home: OfferPool(),
-        // home: FindPool(),
+        // home: RidesPage(),
         home: const SplashScreen(),
         // home: EcoDashboardScreen(),
-        // home: StartRide(),
+        // home: StartRidePage(
+        //   offerId: '5q7ep38p9m7egz1h3HuJZbm303Ss',
+        // ),
       ),
     );
   }

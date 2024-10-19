@@ -505,7 +505,7 @@ class _OfferPoolState extends State<OfferPool> {
                       bool hasLicense =
                           await checkDrivingLicenseIfGiven(context);
                       if (!hasLicense) return;
-                      
+
                       String offerId = randomAlphaNumeric(28);
                       Map<String, dynamic> PoolOfferInfoMap = {
                         'offerId': offerId,
@@ -515,10 +515,14 @@ class _OfferPoolState extends State<OfferPool> {
                           'latitude': initialPos!.latitude,
                           'longitude': initialPos.longitude,
                         },
+                        'startLocationName': initialPos!.placeFormattedAddress,
                         'endLocation': {
                           'latitude': finalPos!.latitude,
                           'longitude': finalPos.longitude,
                         },
+                        'endLocationName': finalPos!.placeFormattedAddress,
+                        'duration': duration,
+                        'distance': distance,
                         'time': fireStoreTimestamp,
                         'availableSeats': selectedSeats,
                         'preferredGender': genderPreference,
@@ -535,10 +539,15 @@ class _OfferPoolState extends State<OfferPool> {
                             userStartLng: initialPos!.longitude,
                             userEndLat: finalPos!.latitude,
                             userEndLng: finalPos!.longitude,
+                            startLocationName: initialPos!.placeFormattedAddress,
+                            endLocationName: finalPos!.placeFormattedAddress,
                             availableSeats: selectedSeats ?? 0,
                             genderPreference: genderPreference ?? "Both",
                             fireStoreTimestamp:
                                 fireStoreTimestamp ?? Timestamp.now(),
+                            duration: duration,
+                            distance: distance,
+                            offerId: offerId
                           ),
                           // builder: (context) => ResultOfferPool(
                           //   userStartLat: 12.6876234,
@@ -609,12 +618,12 @@ class _OfferPoolState extends State<OfferPool> {
     var directionDetails =
         await ApiMethods.getDirections(pickUpLatLng, dropOffLatLng);
     Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(directionDetails!.encodedPoints),
-      ),
-    );
-    distance = directionDetails.distanceText;
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(
+    //     content: Text(directionDetails!.encodedPoints),
+    //   ),
+    // );
+    distance = directionDetails!.distanceText;
     duration = directionDetails.durationText;
     PolylinePoints polylinepoints = PolylinePoints();
     List<PointLatLng> decodedPolyLinePointsResult =

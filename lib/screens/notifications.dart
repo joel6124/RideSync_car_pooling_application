@@ -250,25 +250,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ],
             ),
             const SizedBox(height: 10),
-            if (isAccepted)
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => StartRide()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  backgroundColor: deepGreen,
-                ),
-                child: const Text(
-                  'Start Ride',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ),
+            // if (isAccepted)
+            //   ElevatedButton(
+            //     onPressed: () {
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //             builder: (context) => StartRide(
+            //                   isOfferer: true,
+            //                   startTime: 'ygyg',
+            //                   endTime: 'kjjn',
+            //                   duration: 'kok',
+            //                   amount: 1515,
+            //                 )),
+            //       );
+            //     },
+            //     style: ElevatedButton.styleFrom(
+            //       shape: RoundedRectangleBorder(
+            //           borderRadius: BorderRadius.circular(8)),
+            //       backgroundColor: deepGreen,
+            //     ),
+            //     child: const Text(
+            //       'Start Ride',
+            //       style: TextStyle(
+            //           fontWeight: FontWeight.bold, color: Colors.white),
+            //     ),
+            //   ),
           ],
         ),
       ),

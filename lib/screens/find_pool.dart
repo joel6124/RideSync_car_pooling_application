@@ -375,6 +375,7 @@ class _FindPoolState extends State<FindPool> {
                       Navigator.of(context)
                           .push(MaterialPageRoute(builder: (context) {
                         return ResultFindPool(
+                          requestId: requestId,
                           userStartLat: initialPos!.latitude,
                           userStartLng: initialPos!.longitude,
                           userEndLat: finalPos!.latitude,
@@ -383,6 +384,7 @@ class _FindPoolState extends State<FindPool> {
                           fireStoreTimestamp:
                               fireStoreTimestamp ?? Timestamp.now(),
                           seatsRequested: selectedSeats ?? 0,
+                          distance: distance,
                         );
                       }));
                     },
