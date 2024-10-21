@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
+import 'package:random_string/random_string.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/colours.dart';
+import 'package:ride_sync/screens/home.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math';
 import 'package:pinput/pinput.dart';
@@ -19,6 +21,7 @@ class StartRidePage extends StatefulWidget {
 }
 
 class _StartRidePageState extends State<StartRidePage> {
+  User? user = FirebaseAuth.instance.currentUser;
   Map<String, dynamic>? ride;
   List<String> pins = [];
   List<String> passengerNames = []; // To hold names of passengers
@@ -150,6 +153,21 @@ class _StartRidePageState extends State<StartRidePage> {
     for (String passengerId in ride!['passengers']) {
       String pin = _generateRandomPin();
       passengerPins.add({'userId': passengerId, 'pin': pin});
+      String notificationId = randomAlphaNumeric(28);
+      Map<String, dynamic> notification = {
+        'notificationId': notificationId,
+        'userId': passengerId,
+        'message':
+            'Your ride has begun! Please share this PIN: $pin with your driver to confirm your ride.',
+        'category': 'PIN',
+        'timestamp': Timestamp.now(),
+      };
+      await FirebaseFirestore.instance
+          .collection('Notifications')
+          .doc(notificationId)
+          .set(notification);
+
+      print('Notification sent to passenger $passengerId');
     }
 
     await FirebaseFirestore.instance
@@ -190,7 +208,6 @@ class _StartRidePageState extends State<StartRidePage> {
     }
 
     Future<void> _updateUserStats() async {
-      User? user = FirebaseAuth.instance.currentUser;
       double totalCo2Saved = ride!['co2Saved'];
       double totalDistanceCovered = ride!['distance'];
       int totalPools = 1;
@@ -208,7 +225,7 @@ class _StartRidePageState extends State<StartRidePage> {
       //pool offerer
       if (user != null) {
         DocumentReference userRef =
-            FirebaseFirestore.instance.collection('Users').doc(user.uid);
+            FirebaseFirestore.instance.collection('Users').doc(user!.uid);
 
         await userRef.set({
           'totalCo2Saved': FieldValue.increment(totalCo2Saved),
@@ -247,6 +264,15 @@ class _StartRidePageState extends State<StartRidePage> {
   }
 
   void endRide() async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: deepGreen,
+            ),
+          );
+        });
     QuerySnapshot<Map<String, dynamic>> rideSnapshot = await FirebaseFirestore
         .instance
         .collection('Rides')
@@ -269,6 +295,25 @@ class _StartRidePageState extends State<StartRidePage> {
       'status': 'Completed',
     });
 
+    for (String passengerId in ride!['passengers']) {
+      String notificationId = randomAlphaNumeric(28);
+      Map<String, dynamic> notification = {
+        'notificationId': notificationId,
+        'userId': passengerId,
+        'message':
+            'Your ride with ${user!.displayName ?? "your pool partner"} has ended. The total fare is ₹${ride!['costPerPassenger'].toStringAsFixed(2)}. Please pay at your earliest convenience.',
+        'category': 'payment',
+        'timestamp': Timestamp.now(),
+      };
+      await FirebaseFirestore.instance
+          .collection('Notifications')
+          .doc(notificationId)
+          .set(notification);
+
+      print('Notification(payment) sent to passenger $passengerId');
+    }
+
+    Navigator.of(context).pop();
     List<double> ratings = [];
     showDialog(
       context: context,
@@ -350,6 +395,10 @@ class _StartRidePageState extends State<StartRidePage> {
               onPressed: () {
                 _updatePassengerRatings(ratings);
                 Navigator.of(context).pop();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                  (Route<dynamic> route) => false,
+                );
               },
               child: Container(
                 padding: EdgeInsets.all(10),

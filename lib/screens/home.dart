@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dot_curved_bottom_nav/dot_curved_bottom_nav.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:ride_sync/DataHandler/appData.dart';
@@ -22,6 +25,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    _fetchNotificationCount();
+  }
+
+  int notificationCount = 0;
   TextEditingController _pickuplocationController = TextEditingController();
   TextEditingController _droplocationController = TextEditingController();
 
@@ -92,6 +102,18 @@ class _HomePageState extends State<HomePage> {
     zoom: 14.4746,
   );
 
+  Future<void> _fetchNotificationCount() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Notifications')
+        .where('userId', isEqualTo: user!.uid)
+        .get();
+
+    setState(() {
+      notificationCount = querySnapshot.size;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,13 +122,30 @@ class _HomePageState extends State<HomePage> {
         iconTheme: const IconThemeData(
           color: Colors.white,
         ),
-        title: const Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: Text(
-            'RideSync',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
+        title: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Ride',
+                    style: GoogleFonts.raleway(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Sync',
+                    style: GoogleFonts.raleway(
+                      color: Colors.amber,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
+                  ),
+                ],
+              ),
+            )),
         centerTitle: true,
         backgroundColor: deepGreen,
         actions: [
@@ -133,9 +172,9 @@ class _HomePageState extends State<HomePage> {
                     minWidth: 14,
                     minHeight: 14,
                   ),
-                  child: const Text(
-                    '5',
-                    style: TextStyle(
+                  child: Text(
+                    '$notificationCount',
+                    style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w600,
                       fontSize: 10,
@@ -147,6 +186,21 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ],
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              color: Colors.amber,
+              icon: const Icon(
+                Icons.reorder,
+                size: 24,
+                weight: 100,
+              ),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
       ),
       drawer: Drawer_Navbar(),
       body: Stack(

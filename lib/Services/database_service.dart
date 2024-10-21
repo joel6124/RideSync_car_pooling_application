@@ -381,7 +381,9 @@ class RidesDatabaseService {
         });
         developer.log("cancelRide Offer successfull!");
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Offer cancelled successfully')),
+          SnackBar(
+            content: Text('Offer cancelled successfully'),
+          ),
         );
         Navigator.pop(context);
       } catch (e) {

@@ -273,10 +273,44 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(
                   width: 5), // Small space between the icon and the text
               Text(
-                isVerified ? "User Verified" : "User Not Verified",
+                isVerified ? "User Verified" : "Gender Not Verified",
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey[900]),
               ),
+              if (!isVerified) ...{
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => EditProfilePage()),
+                    );
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.amber,
+                        ),
+                        child: const Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Text(
+                            'Verify',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              }
             ],
           ),
 
@@ -439,24 +473,6 @@ class _ProfilePageState extends State<ProfilePage> {
           // ),
 
           const SizedBox(height: 20),
-
-          if (!isVerified) ...{
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => EditProfilePage()),
-                  );
-                },
-                child: const Text("Verify Gender"),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: const Color(0xFF00492E), // Text color
-                ),
-              ),
-            ),
-          }
         ],
       ),
     );

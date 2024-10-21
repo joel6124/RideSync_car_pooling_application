@@ -578,7 +578,7 @@ class _ResultOfferPoolState extends State<ResultOfferPool> {
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
-                                  'Try searching again later!',
+                                  'We’re actively searching for passengers to fill your ride...',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -813,7 +813,7 @@ class CarpoolOfferCard extends StatelessWidget {
                     children: [
                       const Icon(Icons.eco, color: Colors.green),
                       Text(
-                        ' $totalCo2Saved kg CO2 saved',
+                        ' ${totalCo2Saved.toStringAsFixed(2)} kg CO2 saved',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
@@ -908,14 +908,13 @@ class CarpoolOfferCard extends StatelessWidget {
                           double costPerPerson = calculateCostSharing(
                             distance: ride_dist_double_km,
                             fuelOrEnergyConsumption: costSharingData[0],
-                            numberOfPassengers:
-                                2, // seatsRequested + 1 (initial passenger)
+                            numberOfPassengers: 2,
                             isEV: costSharingData[1],
                           );
 
                           // Calculate CO2 saved
                           double co2Saved =
-                              calculateCO2Saved(ride_dist_double_km);
+                              calculateCO2Saved(ride_dist_double_km, 2);
 
                           // Add costPerPassenger and co2Saved to the map
                           CreateRideInfoMap['costPerPassenger'] = costPerPerson;
@@ -957,17 +956,14 @@ class CarpoolOfferCard extends StatelessWidget {
                           String newPassenger =
                               CreateRideInfoMap['passengers'][0];
                           await ridesCollection.doc(existingRideDoc.id).update({
-                            'passengers': FieldValue.arrayUnion([
-                              newPassenger
-                            ]), // Adds new passenger if not already in array
+                            'passengers': FieldValue.arrayUnion([newPassenger]),
                           });
 
                           // Recalculate cost per passenger based on the updated number of passengers
                           double costPerPerson = calculateCostSharing(
                             distance: ride_dist_double_km,
                             fuelOrEnergyConsumption: costSharingData[0],
-                            numberOfPassengers:
-                                passengers.length + 1, // Add the new passenger
+                            numberOfPassengers: passengers.length + 1,
                             isEV: costSharingData[1],
                           );
 
@@ -975,6 +971,14 @@ class CarpoolOfferCard extends StatelessWidget {
                           await ridesCollection.doc(existingRideDoc.id).update({
                             'costPerPassenger': costPerPerson,
                           });
+
+                          double co2Saved = calculateCO2Saved(
+                              ride_dist_double_km, passengers.length + 1);
+                          // Update co2Saved in Firestore
+                          await ridesCollection.doc(existingRideDoc.id).update({
+                            'co2Saved': co2Saved,
+                          });
+
                           await _RidesDatabaseService.UpdateRequestStatus(
                               requestId);
                           dev.log("Ride Updated successfully!");
@@ -983,8 +987,6 @@ class CarpoolOfferCard extends StatelessWidget {
                           //       content: Text('Ride updated successfully.')),
                           // );
                         }
-                        //DISPLAY POP UP HERE, SHOWING ITS THE USER WHO REQUESTED THE RIDES IS ADDED TO RIDE
-                        // showAddedToRidePopup(context);
                       } catch (e) {
                         // Handle exceptions and show error messages to the user
                         print("Error creating or updating ride: $e");
@@ -1072,14 +1074,14 @@ class CarpoolOfferCard extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => HomePage()),
-                  (Route<dynamic> route) => false,
-                );
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) {
-                  return RidesPage();
-                }));
+                // Navigator.of(context).pushAndRemoveUntil(
+                //   MaterialPageRoute(builder: (context) => HomePage()),
+                //   (Route<dynamic> route) => false,
+                // );
+                // Navigator.of(context)
+                //     .push(MaterialPageRoute(builder: (context) {
+                //   return RidesPage();
+                // }));
               },
               child: Container(
                 padding: EdgeInsets.all(10),
@@ -1103,31 +1105,28 @@ class CarpoolOfferCard extends StatelessWidget {
   }
 
   double calculateCostSharing({
-    required double distance, // Distance in km
-    required double fuelOrEnergyConsumption, // Mileage or energy consumption
-    // required double fuelOrEnergyPrice, // Price per liter (petrol/diesel) or per kWh (EV)
-    required int
-        numberOfPassengers, // Total number of people (including driver)
-    required bool isEV, // If the vehicle is an EV
+    required double distance,
+    required double fuelOrEnergyConsumption,
+    required int numberOfPassengers,
+    required bool isEV,
   }) {
     double totalCost;
 
     if (isEV) {
-      // Energy consumption for EV vehicles
-      double energyUsed = distance * fuelOrEnergyConsumption; // kWh
-      totalCost = energyUsed * 87.5; // Total cost in currency
+      double energyUsed = distance * fuelOrEnergyConsumption;
+      totalCost = energyUsed * 87.5;
     } else {
-      // Fuel consumption for petrol/diesel vehicles
-      double fuelUsed = distance / fuelOrEnergyConsumption; // Liters
-      totalCost = fuelUsed * 102; // Total cost in currency
+      double fuelUsed = distance / fuelOrEnergyConsumption;
+      totalCost = fuelUsed * 102;
     }
-
-    // Cost per person (including driver)
     return totalCost / numberOfPassengers;
   }
 
-  double calculateCO2Saved(double distance) {
-    double co2PerKm = 0.21; // Example CO2 emission per km
-    return distance * co2PerKm;
+  double calculateCO2Saved(double distance, int no_of_passengers) {
+    double CO2_per_km = 0.120;
+    double totalEmissionsIfSeparate = distance * no_of_passengers * CO2_per_km;
+    double actualEmissionsForPooledRide = distance * CO2_per_km;
+    double CO2Saved = totalEmissionsIfSeparate - actualEmissionsForPooledRide;
+    return CO2Saved;
   }
 }

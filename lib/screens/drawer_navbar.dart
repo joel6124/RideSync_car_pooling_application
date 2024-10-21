@@ -96,6 +96,7 @@ class Drawer_Navbar extends StatelessWidget {
               }));
             },
           ),
+          Divider(),
           ListTile(
             leading: Icon(
               Icons.eco_rounded,
@@ -108,6 +109,7 @@ class Drawer_Navbar extends StatelessWidget {
               }));
             },
           ),
+          Divider(),
           ListTile(
             leading: Icon(
               Icons.directions_car,
@@ -120,6 +122,7 @@ class Drawer_Navbar extends StatelessWidget {
               }));
             },
           ),
+          Divider(),
           ListTile(
             leading: Icon(
               Icons.notifications,
@@ -132,14 +135,7 @@ class Drawer_Navbar extends StatelessWidget {
               }));
             },
           ),
-          ListTile(
-            leading: Icon(
-              Icons.payment_outlined,
-              color: const Color.fromARGB(255, 13, 45, 71),
-            ),
-            title: const Text('Payments if needed'),
-            onTap: () {},
-          ),
+          Divider(),
           ListTile(
             leading: Icon(
               Icons.logout,
@@ -150,6 +146,7 @@ class Drawer_Navbar extends StatelessWidget {
               AuthService().SignOut();
             },
           ),
+          Divider(),
         ],
       ),
     );

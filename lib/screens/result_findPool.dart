@@ -579,7 +579,7 @@ class _ResultFindPoolState extends State<ResultFindPool> {
                                 ),
                                 const SizedBox(height: 10),
                                 Text(
-                                  'Try searching again later!',
+                                  'We\'ll keep searching for matching pool offers for this ride...',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -788,7 +788,7 @@ class CarpoolRequestCard extends StatelessWidget {
                     children: [
                       const Icon(Icons.eco, color: Colors.green),
                       Text(
-                        ' $totalCo2Saved kg CO2 saved',
+                        ' ${totalCo2Saved.toStringAsFixed(2)} kg CO2 saved',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
@@ -890,7 +890,7 @@ class CarpoolRequestCard extends StatelessWidget {
                           );
                           dev.log(costPerPerson.toString());
                           double co2Saved =
-                              calculateCO2Saved(ride_dist_double_km);
+                              calculateCO2Saved(ride_dist_double_km, 2);
                           dev.log(co2Saved.toString());
                           CreateRideInfoMap['costPerPassenger'] = costPerPerson;
                           CreateRideInfoMap['co2Saved'] = co2Saved;
@@ -957,14 +957,21 @@ class CarpoolRequestCard extends StatelessWidget {
                           double costPerPerson = calculateCostSharing(
                             distance: ride_dist_double_km,
                             fuelOrEnergyConsumption: costSharingData[0],
-                            numberOfPassengers:
-                                passengers.length + 1, // Add the new passenger
+                            numberOfPassengers: passengers.length + 1,
                             isEV: costSharingData[1],
                           );
                           // Update cost per passenger in Firestore
                           await ridesCollection.doc(existingRideDoc.id).update({
                             'costPerPassenger': costPerPerson,
                           });
+
+                          double co2Saved = calculateCO2Saved(
+                              ride_dist_double_km, passengers.length + 1);
+                          // Update co2Saved in Firestore
+                          await ridesCollection.doc(existingRideDoc.id).update({
+                            'co2Saved': co2Saved,
+                          });
+
                           await _RidesDatabaseService.UpdateRequestStatus(
                               requestId);
                           dev.log("Ride Updated successfully!");
@@ -1115,8 +1122,11 @@ class CarpoolRequestCard extends StatelessWidget {
     return totalCost / numberOfPassengers;
   }
 
-  double calculateCO2Saved(double distance) {
-    double co2PerKm = 0.21; // Example CO2 emission per km
-    return distance * co2PerKm;
+  double calculateCO2Saved(double distance, int no_of_passengers) {
+    double CO2_per_km = 0.120;
+    double totalEmissionsIfSeparate = distance * no_of_passengers * CO2_per_km;
+    double actualEmissionsForPooledRide = distance * CO2_per_km;
+    double CO2Saved = totalEmissionsIfSeparate - actualEmissionsForPooledRide;
+    return CO2Saved;
   }
 }
