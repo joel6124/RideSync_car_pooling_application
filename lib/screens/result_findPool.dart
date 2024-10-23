@@ -975,11 +975,6 @@ class CarpoolRequestCard extends StatelessWidget {
                           await _RidesDatabaseService.UpdateRequestStatus(
                               requestId);
                           dev.log("Ride Updated successfully!");
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Ride updated successfully.')),
-                          );
                         }
                       } catch (e) {
                         dev.log(
@@ -990,6 +985,11 @@ class CarpoolRequestCard extends StatelessWidget {
                                   Text('Failed to create or update ride: $e')),
                         );
                       }
+                      // ScaffoldMessenger.of(context).showSnackBar(
+                      //   const SnackBar(
+                      //       content:
+                      //           Text('Ride request accepted successfully.')),
+                      // );
                     },
                     child: const Text('Request Seat',
                         style: TextStyle(color: Colors.white)),

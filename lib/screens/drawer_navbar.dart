@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ride_sync/authentication/auth_service.dart';
@@ -39,12 +40,38 @@ class Drawer_Navbar extends StatelessWidget {
                       ),
                     ),
                   ),
-                  accountName: Text(
-                    user?.displayName ?? 'User',
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  // accountName: Text(
+                  //   user?.displayName ?? 'User',
+                  //   style: const TextStyle(
+                  //     fontSize: 17,
+                  //     fontWeight: FontWeight.bold,
+                  //   ),
+                  // ),
+                  // StreamBuilder to fetch the account name from Firestore
+                  accountName: StreamBuilder<DocumentSnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('Users')
+                        .doc(user?.uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('Error fetching name');
+                      }
+
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text('Loading...');
+                      }
+
+                      String name = snapshot.data?['name'] ?? 'User';
+
+                      return Text(
+                        name,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      );
+                    },
                   ),
                   accountEmail: Text(
                     user?.email ?? 'No Email',
