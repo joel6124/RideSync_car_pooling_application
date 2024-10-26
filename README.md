@@ -96,8 +96,9 @@
 1. **Clone the repository**:
    
 bash
-   git clone https://github.com//RideSync.git
+   git clone [https://github.com/joel6124/RideSync_car_pooling_application.git](https://github.com/joel6124/RideSync_car_pooling_application.git)
    cd RideSync
+   
 
 
 2. **Install dependencies**:
