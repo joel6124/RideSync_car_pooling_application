@@ -50,11 +50,6 @@ class ForgotPassword extends StatelessWidget {
                 const SizedBox(
                   height: 20,
                 ),
-                // const Text(
-                //   'Enter your email',
-                //   style: TextStyle(
-                //       color: titleGrey, fontSize: 16, fontWeight: FontWeight.bold),
-                // ),
                 CustomTextField(
                     controller: recoveryEmailController,
                     hintText: "Recovery Email",

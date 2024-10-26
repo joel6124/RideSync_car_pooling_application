@@ -208,20 +208,19 @@ class _ProfilePageState extends State<ProfilePage> {
           gender = 'Error fetching gender';
           imgURL =
               'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg';
-          totalPools = 0; // Default value on error
+          totalPools = 0;
           rating = 0.0;
-          isVerified = false; // Default verification status
-          // driverLicenseNo = 'Error fetching License';
+          isVerified = false;
         });
         print('Error fetching user data: $e');
       }
     }
   }
 
-  // Edit field function
-  Future<void> editfield(String field) async {
-    // Logic for editing fields
-  }
+  // // Edit field function
+  // Future<void> editfield(String field) async {
+  //   // Logic for editing fields
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -253,7 +252,7 @@ class _ProfilePageState extends State<ProfilePage> {
               backgroundImage: imgURL.isNotEmpty
                   ? NetworkImage(imgURL)
                   : NetworkImage(
-                      'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg'), // Default image URL
+                      'https://icon-library.com/images/user-icon-jpg/user-icon-jpg-0.jpg'),
             ),
           ),
 
@@ -261,7 +260,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
           // Verified user
           Row(
-            mainAxisAlignment: MainAxisAlignment.center, // Centering the row
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 isVerified
@@ -270,8 +269,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 color:
                     isVerified ? Colors.green : Color.fromARGB(255, 255, 0, 0),
               ),
-              const SizedBox(
-                  width: 5), // Small space between the icon and the text
+              const SizedBox(width: 5),
               Text(
                 isVerified ? "User Verified" : "Gender Not Verified",
                 textAlign: TextAlign.center,
@@ -283,7 +281,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => EditProfilePage()),
+                          builder: (context) => ProfileVerificationPage()),
                     );
                   },
                   child: Padding(
@@ -314,16 +312,14 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
 
-          // Rating
           Row(
-            mainAxisAlignment: MainAxisAlignment.center, // Centering the row
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(
-                Icons.star_rounded, // Star icon
-                color: Color.fromARGB(255, 255, 191, 0), // Color of the star
+                Icons.star_rounded,
+                color: Color.fromARGB(255, 255, 191, 0),
                 size: 22,
               ),
-              // Small space between the icon and the text
               Text(
                 rating.toString(),
                 textAlign: TextAlign.center,
@@ -445,32 +441,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
-
-          // Stack(
-          //   children: [
-          //     MyTextBox(
-          //       text:driverLicenseNo, // This displays the fetched gender
-          //       sectionName: 'Driving License Number',,prefixIcon: Icon(Icons.drive_eta),
-          //       onPressed: null,
-          //     ),
-
-          //     Positioned(
-          //       left: 33, // Position the icon inside the box
-          //       top: 15,  // Adjust the position based on your needs
-          //       child: Container(
-          //         // Add a container to wrap the Row for proper positioning
-          //         child: const Row(
-          //           mainAxisSize: MainAxisSize.min, // Adjusts the row size to fit its content
-          //           children: [
-          //             Icon(Icons.male, color: Color.fromARGB(255, 13, 101, 42)),
-          //             SizedBox(width: 8), // Adds space between the icons
-          //             Icon(Icons.female, color: Color.fromARGB(255, 13, 101, 42)),
-          //           ],
-          //         ),
-          //       ),
-          //     ),
-          //   ],
-          // ),
 
           const SizedBox(height: 20),
         ],

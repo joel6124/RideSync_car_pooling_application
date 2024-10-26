@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:ride_sync/DataHandler/appData.dart';
 import 'package:ride_sync/Model/placePred.dart';
@@ -128,13 +126,11 @@ class _EndSearchScreenState extends State<EndSearchScreen> {
                         return FindPool();
                       }));
                     } else {
-                      // await getDirection(context);
                       Navigator.of(context).pushReplacement(
                           MaterialPageRoute(builder: (context) {
                         return OfferPool();
                       }));
                     }
-                    //Move to either offer pool or find pool
                   },
                   leading: Icon(Icons.add_location),
                   title: Text(

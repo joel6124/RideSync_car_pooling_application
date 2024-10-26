@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:developer' as developer;
@@ -45,7 +43,6 @@ class VehicleDatabaseService {
           .doc(carId)
           .get();
 
-      // Check if the document exists
       if (carDoc.exists) {
         var carData = carDoc.data();
         developer.log("Fetched Car Data: ${carData.toString()}");
@@ -59,7 +56,6 @@ class VehicleDatabaseService {
           developer.log("Fetched Vehicle Details successfully! - mileage");
           return [mileage, false];
         } else if (carType == "EV") {
-          // Add more conditions as necessary
           String? energyConsumption = carData?['energyConsumption'];
           // Navigator.pop(context);
           developer.log("Fetched Vehicle Details successfully! - EV");
@@ -74,12 +70,9 @@ class VehicleDatabaseService {
     } catch (e) {
       // Navigator.pop(context);
       developer.log("Error fetching vehicle data: $e");
-      // Optionally, you can rethrow the error or handle it differently
     }
 
-    // Ensure the function always returns something (an empty list in case of failure)
-    // Navigator.pop(context); // In case it's not closed within the try block
-    return []; // Returning an empty list as a fallback
+    return [];
   }
 }
 
@@ -253,76 +246,6 @@ class RidesDatabaseService {
       }
     }
   }
-
-//   Future<String> UpdateSeatsOffered_RequestSeat(
-//     BuildContext context, String offerId, int seatsRequested, int availableSeats) async {
-
-//   // Show a loading dialog
-//   showDialog(
-//     context: context,
-//     builder: (context) {
-//       return const Center(
-//         child: CircularProgressIndicator(
-//           color: deepGreen,
-//         ),
-//       );
-//     },
-//     barrierDismissible: false,  // Prevent dismissing by tapping outside
-//   );
-
-//   try {
-//     // Perform Firestore update
-//     await FirebaseFirestore.instance
-//         .collection(PoolOffers_collection_ref)
-//         .doc(offerId)
-//         .update({
-//       'availableSeats': (availableSeats - seatsRequested),
-//     });
-
-//     // Fetch updated document to get the car ID
-//     var updatedDoc = await FirebaseFirestore.instance
-//         .collection(PoolOffers_collection_ref)
-//         .doc(offerId)
-//         .get();
-
-//     if (updatedDoc.exists) {
-//       String? carId = updatedDoc.data()?['carId'];
-
-//       // First, close the dialog
-//       if (Navigator.of(context).canPop()) {
-//         Navigator.of(context).pop();  // Close the loading dialog
-//       }
-
-//       // Check if the widget is still mounted before showing the snackbar
-//       if (mounted) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(content: Text('Number of seats updated successfully')),
-//         );
-//       }
-
-//       return carId!;
-//     } else {
-//       throw 'Document not found after update';
-//     }
-
-//   } catch (e) {
-//     print("Error updating number of seats: $e");
-
-//     // Ensure that the dialog is closed
-//     if (Navigator.of(context).canPop()) {
-//       Navigator.of(context).pop();  // Close the loading dialog
-//     }
-
-//     // Only show the snackbar if the widget is still mounted
-//     if (mounted) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Failed to update number of seats: $e')),
-//       );
-//     }
-
-//     return "";
-//   }
-// }
 
   Future<void> cancelRideRequest(
       BuildContext context, DocumentSnapshot<Object?> ride) async {

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ride_sync/Services/database_service.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/widgets/custom_buttom.dart';
@@ -14,7 +12,6 @@ class AddDrivingLicense extends StatefulWidget {
 class _AddDrivingLicenseState extends State<AddDrivingLicense> {
   final _DrivingLicenseService = DrivingLicenseDatabaseService();
   final TextEditingController _licenseController = TextEditingController();
-
 
   String? _validateLicense(String? value) {
     if (value == null || value.isEmpty) {
@@ -91,7 +88,7 @@ class _AddDrivingLicenseState extends State<AddDrivingLicense> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 80),
                 child: CustomButton(
-                  onTap: _validateAndSave, 
+                  onTap: _validateAndSave,
                   txt: 'Validate and Add DL',
                 ),
               ),

@@ -17,8 +17,6 @@ import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/screens/addDrivingLicense.dart';
 import 'package:ride_sync/screens/addVehicle.dart';
 import 'package:ride_sync/screens/result_offerPool.dart';
-import 'package:ride_sync/widgets/custom_buttom.dart';
-import 'dart:developer' as developer;
 
 class OfferPool extends StatefulWidget {
   const OfferPool({super.key});
@@ -50,8 +48,6 @@ class _OfferPoolState extends State<OfferPool> {
         _vehicles.clear();
 
         for (var doc in querySnapshot.docs) {
-          // String carMakeModel = "${doc['carMake']} ${doc['carModel']}";
-          // _vehicles.add(carMakeModel);
           List<String> carMakeModel = [
             "${doc['carId']}",
             "${doc['carMake']} ${doc['carModel']}"
@@ -485,7 +481,6 @@ class _OfferPoolState extends State<OfferPool> {
                       ],
                     ),
                   ),
-
                   SizedBox(
                     height: 20,
                   ),
@@ -535,20 +530,20 @@ class _OfferPoolState extends State<OfferPool> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => ResultOfferPool(
-                            userStartLat: initialPos!.latitude,
-                            userStartLng: initialPos!.longitude,
-                            userEndLat: finalPos!.latitude,
-                            userEndLng: finalPos!.longitude,
-                            startLocationName: initialPos!.placeFormattedAddress,
-                            endLocationName: finalPos!.placeFormattedAddress,
-                            availableSeats: selectedSeats ?? 0,
-                            genderPreference: genderPreference ?? "Both",
-                            fireStoreTimestamp:
-                                fireStoreTimestamp ?? Timestamp.now(),
-                            duration: duration,
-                            distance: distance,
-                            offerId: offerId
-                          ),
+                              userStartLat: initialPos!.latitude,
+                              userStartLng: initialPos!.longitude,
+                              userEndLat: finalPos!.latitude,
+                              userEndLng: finalPos!.longitude,
+                              startLocationName:
+                                  initialPos!.placeFormattedAddress,
+                              endLocationName: finalPos!.placeFormattedAddress,
+                              availableSeats: selectedSeats ?? 0,
+                              genderPreference: genderPreference ?? "Both",
+                              fireStoreTimestamp:
+                                  fireStoreTimestamp ?? Timestamp.now(),
+                              duration: duration,
+                              distance: distance,
+                              offerId: offerId),
                           // builder: (context) => ResultOfferPool(
                           //   userStartLat: 12.6876234,
                           //   userStartLng: 77.7072398,
@@ -586,12 +581,6 @@ class _OfferPoolState extends State<OfferPool> {
                           ),
                         )),
                   ),
-                  // SizedBox(height: 15),
-                  // const Text(
-                  //   'Recurring Ride',
-                  //   style:
-                  //       TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  // ),
                 ],
               ),
             ),

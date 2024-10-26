@@ -1,4 +1,3 @@
-import 'dart:developer' as developer;
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,7 +15,6 @@ import 'package:ride_sync/Services/database_service.dart';
 import 'package:ride_sync/api_calls/apiMethods.dart';
 import 'package:ride_sync/colours.dart';
 import 'package:ride_sync/screens/result_findPool.dart';
-import 'package:ride_sync/widgets/custom_buttom.dart';
 
 class FindPool extends StatefulWidget {
   const FindPool({super.key});

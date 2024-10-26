@@ -40,14 +40,6 @@ class Drawer_Navbar extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // accountName: Text(
-                  //   user?.displayName ?? 'User',
-                  //   style: const TextStyle(
-                  //     fontSize: 17,
-                  //     fontWeight: FontWeight.bold,
-                  //   ),
-                  // ),
-                  // StreamBuilder to fetch the account name from Firestore
                   accountName: StreamBuilder<DocumentSnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('Users')

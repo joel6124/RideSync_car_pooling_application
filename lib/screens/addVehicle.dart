@@ -298,11 +298,6 @@ class _AddVehiclePageState extends State<AddVehiclePage> {
                           };
                           await _vehicleService.addVehicle(
                               context, carId, VehicleInfoMap);
-                          // ScaffoldMessenger.of(context).showSnackBar(
-                          //   SnackBar(
-                          //       content: Text(
-                          //           'Vehicle details added successfully!')),
-                          // );
                         }
                       },
                       child: Container(

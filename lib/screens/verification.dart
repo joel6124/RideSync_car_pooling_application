@@ -1,115 +1,3 @@
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// import 'package:image_picker/image_picker.dart';
-// import 'package:ride_sync/colours.dart'; // For image picking
-
-// class EditProfilePage extends StatefulWidget {
-//   const EditProfilePage({super.key});
-
-//   @override
-//   State<EditProfilePage> createState() => _EditProfilePageState();
-// }
-
-// class _EditProfilePageState extends State<EditProfilePage> {
-//   String imgURL = "";
-//   final ImagePicker _picker = ImagePicker();
-
-//   Future<void> uploadImage() async {
-//     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-//     if (image != null) {
-//       setState(() {
-//         imgURL = image.path; // Store the local path of the image
-//       });
-//     }
-//   }
-
-//   Future<void> verifyUser() async {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(content: Text("User verified successfully!")),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.grey[100],
-//       appBar: AppBar(
-//         iconTheme: const IconThemeData(
-//           color: Colors.white,
-//         ),
-//         title: const Text(
-//           'Profile Verification',
-//           style: TextStyle(
-//             color: Colors.white,
-//             fontWeight: FontWeight.bold,
-//             fontSize: 18,
-//           ),
-//         ),
-//         backgroundColor: deepGreen,
-//       ),
-//       body: ListView(
-//         padding: const EdgeInsets.all(16.0),
-//         children: [
-//           const SizedBox(height: 20),
-//           Center(
-//             child: GestureDetector(
-//               onTap: () {
-//                 uploadImage();
-//               },
-//               child: Container(
-//                 width: double.infinity,
-//                 height: 250,
-//                 decoration: BoxDecoration(
-//                   borderRadius: BorderRadius.circular(8),
-//                   color: Colors.grey[300],
-//                   image: imgURL.isNotEmpty
-//                       ? DecorationImage(
-//                           image: FileImage(File(
-//                               imgURL)), // Use FileImage to display the local image
-//                           fit: BoxFit.cover,
-//                         )
-//                       : null,
-//                 ),
-//                 child: imgURL.isEmpty
-//                     ? Column(
-//                         mainAxisAlignment: MainAxisAlignment.center,
-//                         children: [
-//                           const Icon(Icons.file_upload,
-//                               size: 150, color: Colors.grey),
-//                           const Text(
-//                             'Upload Aadhaar Here...',
-//                             style: TextStyle(
-//                                 fontWeight: FontWeight.w400, fontSize: 17),
-//                           )
-//                         ],
-//                       )
-//                     : null,
-//               ),
-//             ),
-//           ),
-//           const SizedBox(height: 40),
-//           ElevatedButton(
-//             onPressed: verifyUser,
-//             child: Padding(
-//               padding: const EdgeInsets.symmetric(vertical: 14),
-//               child: const Text(
-//                 "Verify User",
-//                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-//               ),
-//             ),
-//             style: ElevatedButton.styleFrom(
-//               shape: RoundedRectangleBorder(
-//                   borderRadius: BorderRadius.circular(8)),
-//               backgroundColor: const Color(0xFF00492E),
-//               foregroundColor: Colors.white,
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -121,14 +9,15 @@ import 'dart:developer' as dev;
 
 import 'package:ride_sync/screens/profile.dart';
 
-class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key});
+class ProfileVerificationPage extends StatefulWidget {
+  const ProfileVerificationPage({super.key});
 
   @override
-  State<EditProfilePage> createState() => _EditProfilePageState();
+  State<ProfileVerificationPage> createState() =>
+      _ProfileVerificationPageState();
 }
 
-class _EditProfilePageState extends State<EditProfilePage> {
+class _ProfileVerificationPageState extends State<ProfileVerificationPage> {
   String imgURL = "";
   final ImagePicker _picker = ImagePicker();
   final TextRecognizer _textRecognizer = TextRecognizer();
@@ -280,8 +169,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   color: Colors.grey[300],
                   image: imgURL.isNotEmpty
                       ? DecorationImage(
-                          image: FileImage(
-                              File(imgURL)), // Display the selected image
+                          image: FileImage(File(imgURL)),
                           fit: BoxFit.cover,
                         )
                       : null,
@@ -316,7 +204,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8)),
-              backgroundColor: deepGreen, // Custom color from colours.dart
+              backgroundColor: deepGreen,
               foregroundColor: Colors.white,
             ),
           ),
@@ -331,212 +219,3 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// import 'package:image_picker/image_picker.dart';
-// import 'package:google_ml_kit/google_ml_kit.dart'; // OCR for text recognition
-// import 'package:ride_sync/colours.dart';
-
-// class EditProfilePage extends StatefulWidget {
-//   const EditProfilePage({super.key});
-
-//   @override
-//   State<EditProfilePage> createState() => _EditProfilePageState();
-// }
-
-// class _EditProfilePageState extends State<EditProfilePage> {
-//   String imgURL = "";
-//   final ImagePicker _picker = ImagePicker();
-//   bool isLoading = false; // For loading indicator
-
-//   Future<void> uploadImage() async {
-//     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-//     if (image != null) {
-//       setState(() {
-//         imgURL = image.path; // Store the local path of the image
-//       });
-//     }
-//   }
-
-//   Future<void> verifyUser() async {
-//     if (imgURL.isEmpty) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text("Please upload an Aadhaar card image first!")),
-//       );
-//       return;
-//     }
-
-//     setState(() {
-//       isLoading = true; // Start loading
-//     });
-
-//     // Perform OCR on the uploaded image
-//     final recognizedText = await _performOCR(imgURL);
-//     if (recognizedText.isNotEmpty) {
-//       // Check if gender is mentioned in the text
-//       String? gender = _extractGender(recognizedText);
-//       if (gender != null) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(
-//               content: Text("User gender: $gender verified successfully!")),
-//         );
-//       } else {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text("Please upload a valid Aadhaar card!")),
-//         );
-//       }
-//     }
-
-//     setState(() {
-//       isLoading = false; // Stop loading
-//     });
-//   }
-
-//   Future<String> _performOCR(String imagePath) async {
-//     try {
-//       final inputImage = InputImage.fromFilePath(imagePath);
-//       final textRecognizer = GoogleMlKit.vision.textRecognizer();
-//       final RecognizedText recognizedText =
-//           await textRecognizer.processImage(inputImage);
-
-//       await textRecognizer.close(); // Release resources
-
-//       return recognizedText.text; // Return all extracted text
-//     } catch (e) {
-//       print('Error performing OCR: $e');
-//       return ""; // Return empty string on failure
-//     }
-//   }
-
-//   String? _extractGender(String text) {
-//     text = text.toLowerCase();
-//     if (text.contains("gender: male") ||
-//         text.contains("Male") ||
-//         text.contains("MALE")) {
-//       return "Male";
-//     } else if (text.contains("gender: female") ||
-//         text.contains("Female") ||
-//         text.contains("FEMALE")) {
-//       return "Female";
-//     }
-
-//     return null;
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.grey[100],
-//       appBar: AppBar(
-//         iconTheme: const IconThemeData(
-//           color: Colors.white,
-//         ),
-//         title: const Text(
-//           'Profile Verification',
-//           style: TextStyle(
-//             color: Colors.white,
-//             fontWeight: FontWeight.bold,
-//             fontSize: 18,
-//           ),
-//         ),
-//         backgroundColor: deepGreen,
-//       ),
-//       body: ListView(
-//         padding: const EdgeInsets.all(16.0),
-//         children: [
-//           const SizedBox(height: 20),
-//           Center(
-//             child: GestureDetector(
-//               onTap: () {
-//                 uploadImage();
-//               },
-//               child: Container(
-//                 width: double.infinity,
-//                 height: 250,
-//                 decoration: BoxDecoration(
-//                   borderRadius: BorderRadius.circular(8),
-//                   color: Colors.grey[300],
-//                   image: imgURL.isNotEmpty
-//                       ? DecorationImage(
-//                           image: FileImage(File(imgURL)),
-//                           fit: BoxFit.cover,
-//                         )
-//                       : null,
-//                 ),
-//                 child: imgURL.isEmpty
-//                     ? Column(
-//                         mainAxisAlignment: MainAxisAlignment.center,
-//                         children: [
-//                           const Icon(Icons.file_upload,
-//                               size: 150, color: Colors.grey),
-//                           const Text(
-//                             'Upload Aadhaar Here...',
-//                             style: TextStyle(
-//                                 fontWeight: FontWeight.w400, fontSize: 17),
-//                           )
-//                         ],
-//                       )
-//                     : null,
-//               ),
-//             ),
-//           ),
-//           const SizedBox(height: 40),
-//           ElevatedButton(
-//             onPressed: isLoading ? null : verifyUser,
-//             child: Padding(
-//               padding: const EdgeInsets.symmetric(vertical: 14),
-//               child: isLoading
-//                   ? CircularProgressIndicator(color: Colors.white)
-//                   : const Text(
-//                       "Verify User",
-//                       style:
-//                           TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-//                     ),
-//             ),
-//             style: ElevatedButton.styleFrom(
-//               shape: RoundedRectangleBorder(
-//                   borderRadius: BorderRadius.circular(8)),
-//               backgroundColor: const Color(0xFF00492E),
-//               foregroundColor: Colors.white,
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

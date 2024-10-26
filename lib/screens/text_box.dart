@@ -49,15 +49,13 @@ class MyTextBox extends StatelessWidget {
               color: const Color(0xFF026430),
               boxShadow: [
                 BoxShadow(
-                  color: const Color.fromARGB(255, 2, 55, 13)
-                      .withOpacity(0.3), // Shadow color
-                  spreadRadius: 4, // Spread radius of the shadow
-                  blurRadius: 4, // Blur radius of the shadow
-                  offset: Offset(0, 0), // Offset for the shadow
+                  color: const Color.fromARGB(255, 2, 55, 13).withOpacity(0.3),
+                  spreadRadius: 4,
+                  blurRadius: 4,
+                  offset: Offset(0, 0),
                 ),
               ],
-              borderRadius:
-                  BorderRadius.circular(8), // Optional: rounded corners
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Padding(
               padding: const EdgeInsets.all(3.0),
@@ -69,73 +67,6 @@ class MyTextBox extends StatelessWidget {
           ),
         ),
       ),
-      // child: Column(
-      //   crossAxisAlignment: CrossAxisAlignment.start,
-      //   children: [
-      //     Row(
-      //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //       children: [
-      //         Row(
-      //           children: [
-      //             prefixIcon,
-      //             SizedBox(
-      //               width: 5,
-      //             ),
-      //             Text(
-      //               sectionName,
-      //               style: TextStyle(
-      //                 color: const Color.fromARGB(255, 0, 0, 0),
-      //                 fontSize: 18,
-      //                 fontWeight: FontWeight.bold,
-      //               ),
-      //             ),
-      //           ],
-      //         ),
-      //         IconButton(
-      //           onPressed: onPressed,
-      //           icon: Container(
-      //             decoration: BoxDecoration(
-      //               color: const Color(0xFF026430),
-      //               boxShadow: [
-      //                 BoxShadow(
-      //                   color: const Color.fromARGB(255, 2, 55, 13)
-      //                       .withOpacity(0.3), // Shadow color
-      //                   spreadRadius: 4, // Spread radius of the shadow
-      //                   blurRadius: 4, // Blur radius of the shadow
-      //                   offset: Offset(0, 0), // Offset for the shadow
-      //                 ),
-      //               ],
-      //               borderRadius:
-      //                   BorderRadius.circular(8), // Optional: rounded corners
-      //             ),
-      //             child: Padding(
-      //               padding: const EdgeInsets.all(3.0),
-      //               child: Icon(
-      //                 Icons.edit,
-      //                 color: const Color.fromARGB(255, 255, 255, 255),
-      //               ),
-      //             ),
-      //           ),
-      //         ),
-      //       ],
-      //     ),
-      //     // Text
-      //     Row(
-      //       children: [
-      //         SizedBox(
-      //           width: 25,
-      //         ),
-      //         Text(
-      //           text,
-      //           style: TextStyle(
-      //             color: const Color.fromARGB(255, 0, 0, 0),
-      //             fontSize: 15,
-      //           ),
-      //         ),
-      //       ],
-      //     )
-      //   ],
-      // ),
     );
   }
 }

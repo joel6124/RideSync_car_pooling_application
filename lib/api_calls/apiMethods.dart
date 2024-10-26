@@ -47,8 +47,7 @@ class ApiMethods {
         longitude: position.longitude,
       );
 
-      // developer.log(position.latitude.toString());
-      // developer.log(position.longitude.toString());
+     
 
       Provider.of<AppData>(context, listen: false)
           .updatePickUpLocationAddress(userPickUpAddress);
